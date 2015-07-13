@@ -1,0 +1,1 @@
+ angular.module( 'next', [ 'ui.bootstrap','ui.router','ngCookies','ngMaterial' ] );

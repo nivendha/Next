@@ -18,7 +18,7 @@ Please feel free to add some contribution to the list
 * [Gulp](http://gulpjs.com)
 
 ### Installation
-1. Clone the repository: `git clone https://github.com/nivendha/intel.git` or download it.
+1. Clone the repository: `git clone https://github.com/nivendha/next.git` or download it.
 2. Open the node console ,install the NodeJS dependencies: `sudo npm install`(for MAC) / 'npm install'(for Windows).
 3. Install the Bower dependencies: `bower install`.
 4. Run the gulp default task: `gulp`. This will build any changes made automatically, and also run a live reload server on [http://localhost:8800](http://localhost:8800).

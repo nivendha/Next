@@ -4,31 +4,50 @@
     <meta name="viewport" content="initial-scale=1, maximum-scale=1, user-scalable=no" />
      <!-- STYLES -->
      <!-- build:css lib/css/main.min.css -->
-       <link rel="stylesheet" type="text/css" href="components/bootstrap/dist/css/bootstrap.min.css">
-  <link rel="stylesheet" type="text/css" href="components/bootstrap/dist/css/bootstrap-theme.min.css">
-  <link rel="stylesheet" type="text/css" href="components/font-awesome/css/font-awesome.min.css">
-  <link rel="stylesheet" type="text/css" href="components/rdash-ui/dist/css/rdash.css">
+     <link rel="stylesheet" type="text/css" href="components/bootstrap/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" type="text/css" href="components/bootstrap/dist/css/bootstrap-theme.min.css">
     <link rel="stylesheet" type="text/css" href="components/angular-material/angular-material.css">
-    <link href="components/mdi/css/materialdesignicons.min.css" rel="stylesheet" type="text/css" />
-
+    <link rel="stylesheet" type="text/css" href="components/angular-material-icons/angular-material-icons.css">
+    <link rel="stylesheet" type="text/css" href="components/rdash-ui/dist/css/rdash.css">
+     <link rel="stylesheet" type="text/css" href="components/extras/addedcss.css">
     <!-- endbuild -->
 
     <!-- SCRIPTS -->
     <!-- build:js lib/js/main.min.js -->
     <script type="text/javascript" src="components/angular/angular.js"></script>
+    <script type="text/javascript" src="components/angular-cookies/angular-cookies.min.js"></script>
     <script type="text/javascript" src="components/angular-bootstrap/ui-bootstrap-tpls.min.js"></script>
-  <script type="text/javascript" src="components/angular-cookies/angular-cookies.min.js"></script>
-  <script type="text/javascript" src="components/angular-ui-router/release/angular-ui-router.min.js"></script>
+    <script type="text/javascript" src="components/angular-ui-router/release/angular-ui-router.min.js"></script>
     <script type="text/javascript" src="components/angular-aria/angular-aria.js"></script>
     <script type="text/javascript" src="components/angular-animate/angular-animate.js"></script>
     <script type="text/javascript" src="components/angular-material/angular-material.js"></script>
+    <script type="text/javascript" src="components/angular-material-icons/angular-material-icons.js"></script>
      <!-- endbuild -->
 
     <!-- Custom Scripts -->
     <script type="text/javascript" src="js/script.min.js"></script>
 </head>
-<body ng-controller="MasterCtrl">
- <div id="page-wrapper" ng-class="{'open': toggle}" ng-cloak>
+<body >
+  <div ng-controller="mainctrl" layout="column" layout-fill="" class="toolbardemoScrollShrink" ng-app="MyApp">
+  
+  <!-- The outer wrapper - need to set height to px or vh
+  <div style="height:90vh; border:1px solid black; overflow:hidden"> -->
+  <!-- Alternatively, the outer wrapper can be positioned absolutely, with an 'auto' height:-->
+  <div style="position: absolute; top: 0px; bottom:0px; height:auto; width: 100%; overflow:hidden">
+  
+
+  <md-toolbar class="md-tall" md-scroll-shrink="">
+    <div class="md-toolbar-tools">
+      <h3>
+        <span>My App Title</span>
+      </h3>
+    </div>
+  </md-toolbar>
+
+  <!-- Content height does not need to be px any more: -->
+  <md-content style="height:100%">
+
+   <div id="page-wrapper" ng-class="{'open': toggle}" ng-cloak>
 
     <!-- Sidebar -->
     <div id="sidebar-wrapper">
@@ -36,29 +55,34 @@
         <li class="sidebar-main">
           <a ng-click="toggleSidebar()">
             Dashboard
-            <i class='mdi mdi-menu'></i>
+            <span class="menu-icon glyphicon glyphicon-transfer"></span>
           </a>
         </li>
         <li class="sidebar-title"><span>NAVIGATION</span></li>
         <li class="sidebar-list">
-          <a href="#/">Dashboard <span class="menu-icon fa fa-tachometer"></span></a>
+          <a href="#">Dashboard <span class="menu-icon fa fa-tachometer"></span></a>
         </li>
         <li class="sidebar-list">
-          <a href="#/test">Test page <span class="menu-icon fa fa-table"></span></a>
+          <a href="#/tables">Tables <span class="menu-icon fa fa-table"></span></a>
         </li>
          <li class="sidebar-list">
           <a href="#/portlet">Portlet <span class="menu-icon fa fa-table"></span></a>
         </li>
       </ul>
       <div class="sidebar-footer">
-        <div class="col-xs-6">
-          <a href="https://github.com/nivendha" target="_blank">
+        <div class="col-xs-4">
+          <a href="https://github.com/rdash/rdash-angular" target="_blank">
             Github
           </a>
         </div>
-        <div class="col-xs-6">
-          <a href="https://github.com/nivendha" target="_blank">
+        <div class="col-xs-4">
+          <a href="https://github.com/rdash/rdash-angular/README.md" target="_blank">
             About
+          </a>
+        </div>
+        <div class="col-xs-4">
+          <a href="#">
+            Support
           </a>
         </div>
       </div>
@@ -68,13 +92,12 @@
     <div id="content-wrapper">
       <div class="page-content">
 
-        <!-- Header Bar -->
-        <div class="row header">
+        <!-- Header Bar         <div class="row header">
           <div class="col-xs-12">
             <div class="user pull-right">
               <div class="item dropdown">
                 <a href="#" class="dropdown-toggle">
-                  <i class="mdi mdi-account"></i>
+                  <img src="img/avatar.jpg">
                 </a>
                 <ul class="dropdown-menu dropdown-menu-right">
                   <li class="dropdown-header">
@@ -129,7 +152,7 @@
             </div>
           </div>
         </div>
-        <!-- End Header Bar -->
+        End Header Bar -->
 
         <!-- Main Content -->
         <div ui-view></div>
@@ -137,5 +160,9 @@
       </div><!-- End Page Content -->
     </div><!-- End Content Wrapper -->
   </div><!-- End Page Wrapper -->
+
+  </md-content>
+  </div>
+</div>
 </body>
 </html>

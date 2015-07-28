@@ -19,6 +19,10 @@ angular.module('next').config(['$stateProvider', '$urlRouterProvider',
                 url: '/test',
                 templateUrl: 'templates/test.html'
             })
+             .state('test1', {
+                url: '/test1',
+                templateUrl: 'templates/test1.html'
+            })
             .state('summary', {
                 url: '/account-summary',
                 templateUrl: 'templates/account-summary.html'

@@ -1,1 +1,1 @@
- angular.module( 'next', [ 'ui.bootstrap','ui.router','ngCookies','ngMaterial' ] );
+ angular.module( 'next', ['ui.router','ngCookies','ngMaterial','ngMdIcons' ] );

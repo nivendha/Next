@@ -3,7 +3,12 @@
  */
 
 angular.module('next')
-    .controller('MasterCtrl', ['$scope', MasterCtrl]);
+    .controller('mainctrl', ['$scope', MasterCtrl]);
 
 function MasterCtrl($scope) {
+	 $scope.visible = true;
+
+  $scope.toggleSidebar = function() {
+    $scope.visible = !$scope.visible;
+  };
 }

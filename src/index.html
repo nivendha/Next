@@ -28,7 +28,7 @@
     <script type="text/javascript" src="js/script.min.js"></script>
 </head>
 <body >
-  <div ng-controller="mainctrl" layout="column" layout-fill="" class="toolbardemoScrollShrink" ng-app="MyApp">
+  <div ng-controller="mainctrl" layout="column" layout-fill="" class="toolbardemoScrollShrink">
   
   <!-- The outer wrapper - need to set height to px or vh
   <div style="height:90vh; border:1px solid black; overflow:hidden"> -->
@@ -36,20 +36,43 @@
   <div style="position: absolute; top: 0px; bottom:0px; height:auto; width: 100%; overflow:hidden">
   
 
-  <md-toolbar class="md-tall" md-scroll-shrink="">
-    <div class="md-toolbar-tools">
-      <h3>
-        <span>My App Title</span>
-      </h3>
+  <md-toolbar  md-scroll-fade
+              layout 
+              md-keep-condensed="64"
+              md-title-scale-factor="1.5"
+              md-shrink-speed-factor=".5"
+              md-expanded-speed-factor=".2">
+
+ <div md-expanded-container>
+      <div md-expanded  md-expanded-keep="60" >
+          <div style="background-image:url(http://lusakavoice.com/wp-content/uploads/2015/04/New-Yorks-iconic-Statue-of-Liberty-.jpg)" class="image"></div>
+      </div>
+
+        <!--<img src="https://upload.wikimedia.org/wikipedia/commons/d/de/0327New_York_City_Statue_of_Liberty.JPG">-->
     </div>
+          
+    <div class="md-toolbar-tools">
+     <md-button class="md-icon-button" aria-label="menu">
+            <ng-md-icon icon="menu"></ng-md-icon>
+        </md-button>
+        <h3 md-toolbar-title>Hi there :)</h3>
+        <span flex></span>
+        <md-button class="md-icon-button" aria-label="Favorite" ng-if="toolbarCondensed">
+             <ng-md-icon icon="favorite"></ng-md-icon>
+        </md-button>
+        <md-button class="md-icon-button" aria-label="settings">
+             <ng-md-icon icon="settings"></ng-md-icon>
+        </md-button>
+        <md-button class="md-icon-button" aria-label="More">
+             <ng-md-icon icon="more_vert"></ng-md-icon>
+        </md-button>
+    </div>
+   <md-button md-toolbar-fab aria-label="Float Action Button" class="md-fab md-accent">
+       <ng-md-icon icon="favorite"></ng-md-icon>
+    </md-button>
   </md-toolbar>
 
-  <!-- Content height does not need to be px any more: -->
-  <md-content style="height:100%">
-
-   <div id="page-wrapper" ng-class="{'open': toggle}" ng-cloak>
-
-    <!-- Sidebar -->
+ <!-- Sidebar -->
     <div id="sidebar-wrapper">
       <ul class="sidebar">
         <li class="sidebar-main">
@@ -89,70 +112,14 @@
     </div>
     <!-- End Sidebar -->
 
+  <!-- Content height does not need to be px any more: -->
+  <md-content style="height:100%">
+
+   <div id="page-wrapper" ng-class="{'open': toggle}" ng-cloak>
+
+   
     <div id="content-wrapper">
       <div class="page-content">
-
-        <!-- Header Bar         <div class="row header">
-          <div class="col-xs-12">
-            <div class="user pull-right">
-              <div class="item dropdown">
-                <a href="#" class="dropdown-toggle">
-                  <img src="img/avatar.jpg">
-                </a>
-                <ul class="dropdown-menu dropdown-menu-right">
-                  <li class="dropdown-header">
-                    Joe Bloggs
-                  </li>
-                  <li class="divider"></li>
-                  <li class="link">
-                    <a href="#">
-                      Profile
-                    </a>
-                  </li>
-                  <li class="link">
-                    <a href="#">
-                      Menu Item
-                    </a>
-                  </li>
-                  <li class="link">
-                    <a href="#">
-                      Menu Item
-                    </a>
-                  </li>
-                  <li class="divider"></li>
-                  <li class="link">
-                    <a href="#">
-                      Logout
-                    </a>
-                  </li>
-                </ul>
-              </div>
-              <div class="item dropdown">
-               <a href="#" class="dropdown-toggle">
-                  <i class="fa fa-bell-o"></i>
-                </a>
-                <ul class="dropdown-menu dropdown-menu-right">
-                  <li class="dropdown-header">
-                    Notifications
-                  </li>
-                  <li class="divider"></li>
-                  <li>
-                    <a href="#">Server Down!</a>
-                  </li>
-                </ul>
-              </div>
-            </div>
-            <div class="meta">
-              <div class="page">
-                Dashboard
-              </div>
-              <div class="breadcrumb-links">
-                Home / Dashboard
-              </div>
-            </div>
-          </div>
-        </div>
-        End Header Bar -->
 
         <!-- Main Content -->
         <div ui-view></div>

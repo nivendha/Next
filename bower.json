@@ -25,6 +25,7 @@
     "font-awesome": "~4.1.0",
     "angular-ui-router": "^0.2.10",
     "angular-material": "~0.10.0",
+	"angular-material-icons": "~0.5.0",
     "mdi": "~1.1.70"
   },
   "directory": "src/components",

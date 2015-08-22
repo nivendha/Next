@@ -1,21 +1,17 @@
-<div>
+
 <md-menu>
-      <md-button aria-label="Open phone interactions menu" class="md-icon-button" ng-click="$mdOpenMenu()">
+      <md-button aria-label="hi" class="md-icon-button" ng-click="$mdOpenMenu();">
        <ng-md-icon icon="more_vert"></ng-md-icon> 
       </md-button>
       <md-menu-content width={{width}}>
-        <md-menu-item>
-          <md-button ng-click="ctrl.redial($event)">
-            <md-icon md-svg-icon="call:dialpad" md-menu-align-target></md-icon>
-            Popup Form
-          </md-button>
-        </md-menu-item>
-        <md-menu-item>
-          <md-button disabled="disabled" >
-            <md-icon md-svg-icon="call:voicemail"></md-icon>
-            Dissabled button test
+        <md-menu-item ng-repeat="item in menuIt">
+          <md-button ng-click="boom($event,$index)">
+             <ng-md-icon icon={{item.icon}}></ng-md-icon>
+            {{item.cont}}
           </md-button>
         </md-menu-item>
       </md-menu-content>
 </md-menu>
-</div>
+
+
+

@@ -1,37 +1,38 @@
 angular.module('next')
-.controller('mainctrl', function($scope) {
-  var imagePath = 'img/list/60.jpeg';
+.controller('tableTest', tableTest);
 
-  $scope.todos = [];
-  for (var i = 0; i < 15; i++) {
-    $scope.todos.push({
-      face: imagePath,
-      what: "Brunch this weekend?",
-      who: "Min Li Chan",
-      notes: "I'll be in your neighborhood doing errands."
+// testing callback for custom context menu in splash table (nx-Context-Click) only in Desktop
+//mobile device to do Andular cordova to get native menu in android and ios
+function tableTest($mdDialog,$scope) {
+  var vm = $scope;
+  $scope.items=[];
+  $scope.items.push({
+      cont: "modal window",
+      desc: "how is this weekend?",
+      icon:"done",
+      click:function(data){
+        //alert(data);
+        $mdDialog.show(
+          $mdDialog.alert()
+        .title('hi '+data)
+        .content('this is the data poping on context callback of click :)')
+        .ok('That went well')
+         );
+      }
     });
-  }
-})
-.controller('AppCtrl', function($scope) {
-  $scope.title1 = 'Button';
-  $scope.title4 = 'Warn';
-  $scope.isDisabled = true;
-  $scope.googleUrl = 'http://google.com';
-}).controller('BasicDemoCtrl', DemoCtrl);
-
-
-function DemoCtrl($mdDialog) {
-  var vm = this;
+   $scope.items.push({
+      cont: "imagePath 2",
+      desc: "how is this weekend?",
+      icon:"grade"
+    });
+    $scope.items.push({
+      cont: "imagePath 3",
+      desc: "how is this weekend?",
+      icon:"thumb_up"
+    });
   vm.notificationsEnabled = true;
   vm.toggleNotifications = function() {
     vm.notificationsEnabled = !vm.notificationsEnabled;
   };
-  vm.redial = function(e) {
-    $mdDialog.show(
-      $mdDialog.alert()
-        .title('Modat title')
-        .content('this is the main content area for populating the data :)')
-        .ok('That went well')
-    );
-  };
+
 }

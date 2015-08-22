@@ -1,8 +1,7 @@
 # Next
 ## Responsive design, Angular framework
-This is build using [rdash-angular](https://github.com/rdash/rdash-angular.git).
 
-rdash-angular is an AngularJS implementation of the RDash admin dashboard. this is under construction for more modules to be added apart from the default Bootstrap modules, we will be happy for your contribution :)
+This is an AngularJS implementation of the RDash admin dashboard. this is under construction for more modules to be added apart from the default Bootstrap modules, we will be happy for your contribution :)
 
 
 

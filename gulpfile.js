@@ -93,7 +93,7 @@ gulp.task('webserver', function() {
     connect.server({
         root: 'dist',
         livereload: false,
-        port: 8800
+        port: process.env.PORT || 8800
     });
 });
 

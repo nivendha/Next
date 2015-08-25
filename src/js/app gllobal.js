@@ -2,7 +2,7 @@
 /*
 *Global functions
 */
-Object.defineProperty(global, '__stack', {
+/*Object.defineProperty(global, '__stack', {
   get: function(){
     var orig = Error.prepareStackTrace;
     Error.prepareStackTrace = function(_, stack){ return stack; };
@@ -18,4 +18,4 @@ Object.defineProperty(global, '__lineNumber', {
   get: function(){
     return __stack[1].getLineNumber();
   }
-});
+});*/

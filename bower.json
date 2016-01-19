@@ -1,39 +1,15 @@
 {
   "name": "next",
-  "version": "0.0.1",
-  "description": "An AngularJS Project",
+  "version": "0.1.0",
+  "description": "",
   "homepage": "",
-  "authors": [
-    "knivendha@gmail.com"
-  ],
-  "contributors": [],
-  "main": "index.html",
-  "license": "MIT",
-  "ignore": [
-    "**/.*",
-    "node_modules",
-    "bower_components",
-    "test",
-    "tests"
-  ],
-  "dependencies": {
-    "rdash-ui": "1.0.*",
-    "angular": "~1.3.15",
-    "angular-cookies": "~1.2.21",
-    "bootstrap": "~3.2.0",
-    "angular-bootstrap": "~0.11.0",
-    "font-awesome": "~4.1.0",
-    "angular-ui-router": "^0.2.10",
-    "angular-material": "~0.10.0",
-	"angular-material-icons": "~0.5.0",
-    "mdi": "~1.1.70"
+   "dependencies": {
+    "materialize": "~0.97.0",
+    "jsface": "~2.4.9"
   },
-  "directory": "src/components",
+  "directory": "app/arc/components",
   "repository": {
     "type": "git",
     "url": "https://github.com/nivendha"
-  },
-  "resolutions": {
-    "angular": "~1.4.3"
   }
 }

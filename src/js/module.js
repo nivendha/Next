@@ -1,1 +1,0 @@
- angular.module( 'next', ['ui.router','ngCookies','ngMaterial','ngMdIcons' ] );

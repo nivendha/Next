@@ -1,3 +1,4 @@
 dist/
 node_modules/
-app/public/components
+app/public/
+app/src/components

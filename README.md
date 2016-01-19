@@ -1,6 +1,6 @@
 # Next
 
-This is an js Framework built with a simple and flesible architecture
+This is an js Framework built with a simple design architecture
 
 ### Requirements
 * [NodeJS](http://nodejs.org/) (with [NPM](https://www.npmjs.org/))

@@ -7,7 +7,7 @@
     "materialize": "~0.97.0",
     "jsface": "~2.4.9"
   },
-  "directory": "app/arc/components",
+  "directory": "app/src/components",
   "repository": {
     "type": "git",
     "url": "https://github.com/nivendha"

@@ -1,16 +1,17 @@
-
-var nx = (function () {
+var $nx = (function () {
     'use strict';
     var resources = {
         'filters' : { },
         'constants' : { },
         'factory' : { },
-        '$nx' : { },
+        '$me' : { },
         'mode' : null,
+        'nodeTypeMd':{},
+        'nodeClass':{},
         'root' : '/',
         'routes' : [],
         'controller' : { },
-        'controller_dependancy':{ },
+        'controller_dependancy':{},
         'config': function(options) {
             resources.mode = options && options.mode && options.mode == 'history' 
                         && !!(history.pushState) ? 'history' : 'hash';
@@ -76,7 +77,8 @@ var nx = (function () {
                 this.interval = setTimeout(fn, 50);    
             }
         },
-    }, api = {
+    }, 
+    api = {
         'filters': function (key, val) {
             resources.filters[key] = val;
         },
@@ -120,8 +122,8 @@ var nx = (function () {
                             if (resources.constants.hasOwnProperty(arrayArg[iter])) {
                                 dependancy.push(api.loadConstant(arrayArg[iter]));
                             } else {
-                                //if it is $nx scope
-                                if (arrayArg[iter] === "$nx") {
+                                //if it is $me scope
+                                if (arrayArg[iter] === "$mi") {
                                     dependancy.push({});
                                 } else {
                                     console.log("Error: " + arrayArg[iter] + " is not Found in constants and Factories");
@@ -151,18 +153,92 @@ var nx = (function () {
         },
 
         'module': function(key, arrayArg){
-            if(key.startsWith('mi')){
+            if(key.startsWith('$')){
                 var last_index = arrayArg.length-1;
                 var dependancies = arrayArg.slice(0, -1);
                 if (typeof arrayArg[last_index] === "function") {
                     console.log("-"+api.loadDependancies(dependancies));
-                    resources[key.substring(3, key.length)] = arrayArg[last_index].apply(this, api.loadDependancies(dependancies)); // arrayArg[last_index];
+                    resources[key] = arrayArg[last_index].apply(this, api.loadDependancies(dependancies)); // arrayArg[last_index];
                 } else {
                     console.log("Nan");
                 }
             }
             else{
-                console.log("Error in module "+key+": should starts with nx");
+                console.log("Error in module "+key+": should starts with $");
+            }
+        },
+/*        'nodeMgr':function(key, arrayArg){
+              var fn_index = arrayArg.length-1;
+              var dependancies = arrayArg.slice(0, -1);
+               if (typeof arrayArg[fn_index] === "function") {
+                var _this=resources.node[key] = arrayArg[fn_index].apply(this, api.loadDependancies(dependancies));
+                var $nmodObj=new $nmod();
+                     $nmodObj.create({
+                         'addToDom':_this.config.addToDom,
+                         'tmplType':_this.config.tmplType
+                    });
+                    if (typeof _this.preLoadTmpl === "function")
+                     _this.preLoadTmpl.apply(_this,[$nmodObj.getNodeMd(),'maperConfig']);
+                 //through the mapper find the parent node and fire its childEventListeners for event preLoadTmpl
+
+                    $nmodObj.getNodeMd()
+                    
+               }else{
+                  console.log("Nan for node"+key);
+               }
+        },*/
+        'nodeMgr':function(key,nd_type,arrayArg){
+             var fn_index = arrayArg.length-1;
+              var dependancies = arrayArg.slice(0, -1);
+               if (typeof arrayArg[fn_index] === "function") {
+                dependancies=api.loadDependancies(dependancies);
+                dependancies.unshift(new resources.nodeClass[nd_type](resources.nodeTypeMd[nd_type]));
+                arrayArg[fn_index].apply(this,dependancies);
+               }
+        },
+        'node':function(key, arrayArg){
+             var fn_index = arrayArg.length-1;
+              var dependancies = arrayArg.slice(0, -1);
+               if (typeof arrayArg[fn_index] === "function") {
+                var _node=resources.nodeTypeMd[key]=arrayArg[fn_index].apply(this, api.loadDependancies(dependancies));
+                if(_node.dom!=''){
+                   // $(_node.dom).addClass(_node.class);
+                    var a=[],a=Object.keys(_node.addListeners);
+                    for (var index = 0, len = a.length; index < len; ++index) {
+                            _node.listeners[a[index]]=_node.addListeners[a[index]];
+                        }
+                    delete _node.addListeners;
+                    //so far listeners ready in the _node json
+                    //make a class from _node and push it to resources.nodeType[key]
+                    var _nd=(function(_node){
+                        var config=_node;
+                        var _nd_api={
+                            '_getCongig':function(){
+                                 return config;
+                            }
+                        };
+                    
+                        this.getCongig=function(){
+                            return _nd_api._getCongig;
+                        }
+                    });
+                     _nd.prototype.entry=function(key, arrayArg){
+                                    if(arguments.length==1 && typeof key=='function'){
+                                        arrayArg=[key];key='';
+                                    }
+                                     var fn_index = arrayArg.length-1;
+                                     var dependancies = arrayArg.slice(0, -1);
+                                      if (typeof arrayArg[fn_index] === "function") {
+                                       dependancies=api.loadDependancies(dependancies);
+                                       dependancies.unshift(this.getCongig().apply(this,arguments));
+                                       arrayArg[fn_index].apply(this,dependancies);
+                                       // now entry is done start the templating process , listeners , exit, then fire communinication 
+                                       //to parent node
+                                      }
+                    }
+                }
+
+                resources.nodeClass[key]=_nd;
             }
         }
     };
@@ -191,7 +267,12 @@ var nx = (function () {
     function module(){
         api.module(arguments[0], arguments[1]);
     }
-
+    function nodeMgr(){
+        api.nodeMgr(arguments[0], arguments[1], arguments[2]);
+    }
+     function node(){
+        api.node(arguments[0], arguments[1]);
+    }
     function initiate(){
         resources.config({mode :'history'});
         resources.listen();
@@ -207,21 +288,91 @@ var nx = (function () {
     initiate();
 
     return {
-        'filters': filters,
+        'nxfilters': filters,
         'factory': factory,
         'routes': routes,
         'controller': controller,
         'constants': constants,
-        'module': module
+        'module': module,
+        'nodeMgr': nodeMgr,
+        'node':node
     }
-})();
+});
+//TODO, waiting to be made ready as an class for injection
+var nxAjax=(function(){
+    'use strict';
+    function templateCall(){
+        return $.ajax({ 
+            cache: false,
+            url: arguments[0],
+            method: "GET",
+            contentType: "application/json",
+            dataType:"html"
+            });
+    };
+    var api={
+        'getAppData':function getAppData(){
+            console.log(arguments);
+        },
+        'getData':function getData(){
+            console.log(arguments);
+        },
+        'getTemplate':function getTemplate(key,scope,done,fail){
+          if (typeof key === "string" && typeof done === "function" && typeof scope != "undefined") {
+                fail=typeof fail !='function'?done:fail;
+                var template = key
+                var callbacks = arrayArg;
+                templateCall(key).then(function(){
+                    done.apply(scope,arguments);
+                },function(){
+                    fail.apply(scope,arguments);
+                });
+            }
+        }
+    }
+    return{
+        'getTemplate':function(){
+            api.getTemplate.apply(this,arguments);
+        },
+        'getAppData':function(){
+            api.getAppData.apply(this,arguments);
+        },
+        'getData':function(){
+            api.getAppData.apply(this,arguments);
+        }
+    }
+});
 
-nx.factory('factory name', ['dependancy1', 'dependacy2', function(dependacy1, dependancy2){
- //you should access dependancy1
-    return {
-    'publicAccess': function(){
-         return "something"
-     }
-    }
-}]);
+
+//TO DO: thieses methods to be implemented
+/*app.nodeMgr('node0',['constant',function(constant){
+    var cn=constant;
+    return{
+        'config':{
+         'addToDom':'<div id="root"></div>',
+         'tmplType':'tab'
+          },
+        'preLoadTmpl':function(nodeMd,config){
+            console.log(arguments);
+            nodeMd.tmplType='card';
+        },
+        'postLoadTmpl':function(){
+            //gets the config and parent md if any change is to be neded
+            //can be used to make ajax call to get some other dom or md and this will be passed on 
+            //when the call goes to addListeners
+        },
+        'addListeners':function(){
+            //gets the config and parent md if any change is to be neded
+        },
+        'childEventListeners': function(){
+            //fired internaly by fw for every event occuring in the child
+        },
+        'postFetchChildMd':function(){
+            // an exit function if any child md has to be changed before calling the child nodes
+        }
+    } 
+}]);*/
+
+
+
 

@@ -343,7 +343,52 @@ var nxAjax=(function(){
     }
 });
 
+var nx = $nx();
+nx.constants('constant', function(){
+ return {
+ 'dependancy1':'d1',
+ 'dependancyn':'d2'
+ }
+});
 
+
+nx.node('$tab',['$nxAjax','constants',function($nxAjax,constants){
+    return{
+        'dom':'<div id="tab"></div>',
+        'template':'',
+        'extraParamAjax':'',
+        'class':'hi',
+        'addListeners':{
+            'tabClick':function(){
+
+            },
+            'tabMove':function(){
+
+            }
+        },
+        'listeners':{
+            'entry':function(){
+
+            },
+            'preLoadTmpl':function(){
+
+            },
+            'exit':function(){
+
+            }
+        }
+
+    }
+}]);
+
+nx.nodeMgr('node0','$tab',['constants',function($tabObj,constants){
+           $tabObj.entry(function(config){
+            console.log(config);
+           });
+           $tabObj.preLoadTmpl(['constant',function(constant){
+                //we get tabodj having its md also constants module access
+           }]);
+}]);
 //TO DO: thieses methods to be implemented
 /*app.nodeMgr('node0',['constant',function(constant){
     var cn=constant;

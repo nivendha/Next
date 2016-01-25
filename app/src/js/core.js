@@ -4,8 +4,9 @@ var $nx = (function () {
         'filters' : { },
         'constants' : { },
         'factory' : { },
-        '$me' : { },
+        '$_nx' : { },
         'mode' : null,
+        'node':{},
         'nodeTypeMd':{},
         'nodeClass':{},
         'root' : '/',
@@ -122,8 +123,8 @@ var $nx = (function () {
                             if (resources.constants.hasOwnProperty(arrayArg[iter])) {
                                 dependancy.push(api.loadConstant(arrayArg[iter]));
                             } else {
-                                //if it is $me scope
-                                if (arrayArg[iter] === "$mi") {
+                                //if it is $_nx scope
+                                if (arrayArg[iter] === "$_nx") {
                                     dependancy.push({});
                                 } else {
                                     console.log("Error: " + arrayArg[iter] + " is not Found in constants and Factories");
@@ -194,6 +195,9 @@ var $nx = (function () {
                 dependancies=api.loadDependancies(dependancies);
                 dependancies.unshift(new resources.nodeClass[nd_type](resources.nodeTypeMd[nd_type]));
                 arrayArg[fn_index].apply(this,dependancies);
+                var _nMgrObj=dependancies[0];
+                //add this _nMgrObj obj to the _mapper so that it can be intiated when map come to load this node
+                resources.node[key]=_nMgrObj;
                }
         },
         'node':function(key, arrayArg){
@@ -212,30 +216,59 @@ var $nx = (function () {
                     //make a class from _node and push it to resources.nodeType[key]
                     var _nd=(function(_node){
                         var config=_node;
+                        // recived nodetype specific config here from which take out
+                        //the node specific listeners and provide implementation handler functions
+                        var fn={};
                         var _nd_api={
-                            '_getCongig':function(){
-                                 return config;
+                            '_get_fn':function(_fn){
+                                 return fn[_fn];
+                            },
+                            '_set_fn':function(_fn,obj){
+                                fn[_fn]=obj;
                             }
                         };
                     
-                        this.getCongig=function(){
-                            return _nd_api._getCongig;
+                        this.seter=function(){
+                            return _nd_api._set_fn;
+                        }
+                        this.geter=function(){
+                            return _nd_api._get_fn;
                         }
                     });
-                     _nd.prototype.entry=function(key, arrayArg){
-                                    if(arguments.length==1 && typeof key=='function'){
-                                        arrayArg=[key];key='';
+                     _nd.prototype._fn_parser=function(arrayArg,_fn){
+                        if(typeof arrayArg=='function'){
+                                        arrayArg=[arrayArg];
                                     }
                                      var fn_index = arrayArg.length-1;
                                      var dependancies = arrayArg.slice(0, -1);
                                       if (typeof arrayArg[fn_index] === "function") {
-                                       dependancies=api.loadDependancies(dependancies);
-                                       dependancies.unshift(this.getCongig().apply(this,arguments));
-                                       arrayArg[fn_index].apply(this,dependancies);
-                                       // now entry is done start the templating process , listeners , exit, then fire communinication 
-                                       //to parent node
+                                        dependancies=api.loadDependancies(dependancies);
+                                        this.seter().apply(this,[_fn,
+                                            {
+                                            'dependancies':dependancies,
+                                            '_fn':arrayArg[fn_index]
+                                            }]);
                                       }
-                    }
+                     };
+                     _nd.prototype.entry=function(arrayArg){
+                       this._fn_parser(arrayArg,'_entry');
+                    };
+                    _nd.prototype.preLoadTmpl=function(arrayArg){
+                       this._fn_parser(arrayArg,'_preLoadTmpl'); 
+                   };
+                    _nd.prototype.addListeners=function(arrayArg){
+                       this._fn_parser(arrayArg,'_addListeners'); 
+                   };
+                    _nd.prototype.childEventListeners=function(arrayArg){
+                       this._fn_parser(arrayArg,'_childEventListeners'); 
+                   };
+                    _nd.prototype.postFetchChildMd=function(arrayArg){
+                       this._fn_parser(arrayArg,'_postFetchChildMd'); 
+                   };
+                     _nd.prototype.exit=function(arrayArg){
+                       this._fn_parser(arrayArg,'_exit');
+                    };                   
+
                 }
 
                 resources.nodeClass[key]=_nd;
@@ -384,10 +417,14 @@ nx.node('$tab',['$nxAjax','constants',function($nxAjax,constants){
 nx.nodeMgr('node0','$tab',['constants',function($tabObj,constants){
            $tabObj.entry(function(config){
             console.log(config);
+        // now entry is done start the templating process , listeners , exit, then fire communinication 
+        //to parent node
+                    
            });
            $tabObj.preLoadTmpl(['constant',function(constant){
                 //we get tabodj having its md also constants module access
            }]);
+           
 }]);
 //TO DO: thieses methods to be implemented
 /*app.nodeMgr('node0',['constant',function(constant){

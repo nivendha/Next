@@ -1,3 +1,26 @@
+var mapperJson={
+    'id':'node0',
+    'description':'main_wrapper',
+    'child':[{
+        'id':'node1',
+        'description':'header',
+        'child':[{
+                'id':'cell1',
+                'description':'top_bar'
+                }]
+    },{
+        'id':'node2',
+        'description':'tab',
+        'child':[{
+                'id':'cell2',
+                'description':'tab1'
+                },
+                {
+                'id':'cell3',
+                'description':'tab2'
+                }]
+    }]
+};
 var $nx = (function () {
     'use strict';
     var resources = {
@@ -154,7 +177,6 @@ var $nx = (function () {
         },
 
         'module': function(key, arrayArg){
-            if(key.startsWith('$')){
                 var last_index = arrayArg.length-1;
                 var dependancies = arrayArg.slice(0, -1);
                 if (typeof arrayArg[last_index] === "function") {
@@ -163,10 +185,6 @@ var $nx = (function () {
                 } else {
                     console.log("Nan");
                 }
-            }
-            else{
-                console.log("Error in module "+key+": should starts with $");
-            }
         },
         'nodeMgr':function(key,nd_type,arrayArg){
              var fn_index = arrayArg.length-1;
@@ -197,14 +215,37 @@ var $nx = (function () {
         },
         'start':function(){
             //1)read maper json
-                
+            var _map=resources._mapperJson=mapperJson;
+           
+                if(_map.id!=undefined){
+                    var ndMgr=resources.node[_map.id];
+                    //var ndMgr=nd.geter();
+                    var ndTyp_conf=ndMgr.geter('config');
+                    
+                    var ent_obj=ndTyp_conf.geter('_entry');
+                    ent_obj._fn.apply(ndTyp_conf,ent_obj.dependancies);
+
+                    var extraParamAjax_obj=ndTyp_conf.geter('_extraParamAjax');
+                    ndTyp_conf.extraParams=extraParamAjax_obj._fn.apply(api.loadModule('nxAjax'),extraParamAjax_obj.dependancies);
+
+                    var preLoadTmpl_obj=ndTyp_conf.geter('_preLoadTmpl');
+                    preLoadTmpl_obj._fn.apply(ndTyp_conf,preLoadTmpl_obj.dependancies);
+
+                    var postLoadTmpl_obj=ndTyp_conf.geter('_postLoadTmpl');
+                    postLoadTmpl_obj._fn.apply(ndTyp_conf,postLoadTmpl_obj.dependancies);
+
+                    var exit_obj=ndTyp_conf.geter('_exit');
+                    exit_obj._fn.apply(ndTyp_conf,exit_obj.dependancies);
+
+
+            }
             //2)build the node
 
         }
     };
     var _ndTypeClass=(function(){
                         var fn={};
-                        var _ndType_api={
+                        var _nd_api={
                             '_get_fn':function(_fn){
                                  return fn[_fn];
                             },
@@ -214,10 +255,10 @@ var $nx = (function () {
                         };
                     
                         this.seter=function(){
-                            return _ndType_api._set_fn;
+                            return _nd_api._set_fn;
                         }
                         this.geter=function(){
-                            return _ndType_api._get_fn;
+                            return _nd_api._get_fn.apply(this,arguments);
                         }
                 });
                 _ndTypeClass.prototype._fn_parser=function(arrayArg,_fn){
@@ -236,7 +277,7 @@ var $nx = (function () {
                                       }
                      };
                     _ndTypeClass.prototype.extraParamAjax=function(_fn_callback){
-                    _fn_callback.apply(this,[this.dom]);
+                     this._fn_parser(_fn_callback,'_extraParamAjax');
                     },
                     _ndTypeClass.prototype.entry=function(arrayArg){
                        this._fn_parser(arrayArg,'_entry');
@@ -271,7 +312,7 @@ var $nx = (function () {
                             return _nd_api._set_fn;
                         }
                         this.geter=function(){
-                            return _nd_api._get_fn;
+                         return _nd_api._get_fn.apply(this,arguments);
                         }
                     });
                      _ndMgrClass.prototype._fn_parser=function(arrayArg,_fn){
@@ -314,8 +355,8 @@ var $nx = (function () {
     function filters() {
         api.filters(arguments[0], arguments[1]);
     }
-    function build(){
-        api.build(arguments);
+    function start(){
+        api.start(arguments);
     }
     function factory() {
         api.factory(arguments[0], arguments[1]);
@@ -370,7 +411,11 @@ var $nx = (function () {
 });
 //TODO, waiting to be made ready as an class for injection
 var nxAjax=(function(){
-    'use strict';
+   
+});
+var nx = $nx();
+nx.module('nxAjax',[function(){
+     'use strict';
     function templateCall(){
         return $.ajax({ 
             cache: false,
@@ -411,9 +456,8 @@ var nxAjax=(function(){
             api.getAppData.apply(this,arguments);
         }
     }
-});
+}]);
 
-var nx = $nx();
 nx.constants('constant', function(){
  return {
  'dependancy1':'d1',
@@ -464,8 +508,8 @@ nx.node('$tab',['constants',function(constants){
     this.addListeners('tabMove',['constants',function(constants){
         
     }]);
-    this.exit(['constants',function(constants){
-        // global exit
+    this.entry(['constants',function(constants){
+        console.log(this);
     }]);
 }]);
 nx.nodeMgr('node0','$tab',['constants',function(constants){

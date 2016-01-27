@@ -168,57 +168,96 @@ var $nx = (function () {
                 console.log("Error in module "+key+": should starts with $");
             }
         },
-/*        'nodeMgr':function(key, arrayArg){
-              var fn_index = arrayArg.length-1;
-              var dependancies = arrayArg.slice(0, -1);
-               if (typeof arrayArg[fn_index] === "function") {
-                var _this=resources.node[key] = arrayArg[fn_index].apply(this, api.loadDependancies(dependancies));
-                var $nmodObj=new $nmod();
-                     $nmodObj.create({
-                         'addToDom':_this.config.addToDom,
-                         'tmplType':_this.config.tmplType
-                    });
-                    if (typeof _this.preLoadTmpl === "function")
-                     _this.preLoadTmpl.apply(_this,[$nmodObj.getNodeMd(),'maperConfig']);
-                 //through the mapper find the parent node and fire its childEventListeners for event preLoadTmpl
-
-                    $nmodObj.getNodeMd()
-                    
-               }else{
-                  console.log("Nan for node"+key);
-               }
-        },*/
         'nodeMgr':function(key,nd_type,arrayArg){
              var fn_index = arrayArg.length-1;
               var dependancies = arrayArg.slice(0, -1);
                if (typeof arrayArg[fn_index] === "function") {
-                dependancies=api.loadDependancies(dependancies);
-                dependancies.unshift(new resources.nodeClass[nd_type](resources.nodeTypeMd[nd_type]));
-                arrayArg[fn_index].apply(this,dependancies);
-                var _nMgrObj=dependancies[0];
+                var _ndMgrObj=new _ndMgrClass(resources.nodeTypeMd[nd_type])
+                arrayArg[fn_index].apply(_ndMgrObj,api.loadDependancies(dependancies));
+                
                 //add this _nMgrObj obj to the _mapper so that it can be intiated when map come to load this node
-                resources.node[key]=_nMgrObj;
+                resources.node[key]=_ndMgrObj;
                }
         },
-        'node':function(key, arrayArg){
-             var fn_index = arrayArg.length-1;
+         'node':function(key,arrayArg){
+            if(key.startsWith('$')){
+              var fn_index = arrayArg.length-1;
               var dependancies = arrayArg.slice(0, -1);
                if (typeof arrayArg[fn_index] === "function") {
-                var _node=resources.nodeTypeMd[key]=arrayArg[fn_index].apply(this, api.loadDependancies(dependancies));
-                if(_node.dom!=''){
-                   // $(_node.dom).addClass(_node.class);
-                    var a=[],a=Object.keys(_node.addListeners);
-                    for (var index = 0, len = a.length; index < len; ++index) {
-                            _node.listeners[a[index]]=_node.addListeners[a[index]];
+               
+                    var _nodeTypeObj=new _ndTypeClass();
+                    arrayArg[fn_index].apply(_nodeTypeObj, api.loadDependancies(dependancies));
+                    resources.nodeTypeMd[key]=_nodeTypeObj;
+                }
+             }
+            else{
+                console.log("Error in node "+key+": should starts with $");
+            }
+            
+        },
+        'start':function(){
+            //1)read maper json
+                
+            //2)build the node
+
+        }
+    };
+    var _ndTypeClass=(function(){
+                        var fn={};
+                        var _ndType_api={
+                            '_get_fn':function(_fn){
+                                 return fn[_fn];
+                            },
+                            '_set_fn':function(_fn,obj){
+                                fn[_fn]=obj;
+                            }
+                        };
+                    
+                        this.seter=function(){
+                            return _ndType_api._set_fn;
                         }
-                    delete _node.addListeners;
-                    //so far listeners ready in the _node json
-                    //make a class from _node and push it to resources.nodeType[key]
-                    var _nd=(function(_node){
-                        var config=_node;
+                        this.geter=function(){
+                            return _ndType_api._get_fn;
+                        }
+                });
+                _ndTypeClass.prototype._fn_parser=function(arrayArg,_fn){
+                        if(typeof arrayArg=='function'){
+                                        arrayArg=[arrayArg];
+                                    }
+                                     var fn_index = arrayArg.length-1;
+                                     var dependancies = arrayArg.slice(0, -1);
+                                      if (typeof arrayArg[fn_index] === "function") {
+                                        dependancies=api.loadDependancies(dependancies);
+                                        this.seter().apply(this,[_fn,
+                                            {
+                                            'dependancies':dependancies,
+                                            '_fn':arrayArg[fn_index]
+                                            }]);
+                                      }
+                     };
+                    _ndTypeClass.prototype.extraParamAjax=function(_fn_callback){
+                    _fn_callback.apply(this,[this.dom]);
+                    },
+                    _ndTypeClass.prototype.entry=function(arrayArg){
+                       this._fn_parser(arrayArg,'_entry');
+                    };
+                    _ndTypeClass.prototype.preLoadTmpl=function(arrayArg){
+                       this._fn_parser(arrayArg,'_preLoadTmpl'); 
+                   };
+                    _ndTypeClass.prototype.addListeners=function(key,arrayArg){
+                       this._fn_parser(arrayArg,'_'+key); 
+                   };
+                    _ndTypeClass.prototype.postFetchChildMd=function(arrayArg){
+                       this._fn_parser(arrayArg,'_postFetchChildMd'); 
+                   };
+                     _ndTypeClass.prototype.exit=function(arrayArg){
+                       this._fn_parser(arrayArg,'_exit');
+                    }; 
+    var _ndMgrClass=(function(_nodeTypeClass){
                         // recived nodetype specific config here from which take out
                         //the node specific listeners and provide implementation handler functions
                         var fn={};
+                        fn.config=_nodeTypeClass;
                         var _nd_api={
                             '_get_fn':function(_fn){
                                  return fn[_fn];
@@ -235,7 +274,7 @@ var $nx = (function () {
                             return _nd_api._get_fn;
                         }
                     });
-                     _nd.prototype._fn_parser=function(arrayArg,_fn){
+                     _ndMgrClass.prototype._fn_parser=function(arrayArg,_fn){
                         if(typeof arrayArg=='function'){
                                         arrayArg=[arrayArg];
                                     }
@@ -250,37 +289,34 @@ var $nx = (function () {
                                             }]);
                                       }
                      };
-                     _nd.prototype.entry=function(arrayArg){
+                     _ndMgrClass.prototype.entry=function(arrayArg){
                        this._fn_parser(arrayArg,'_entry');
                     };
-                    _nd.prototype.preLoadTmpl=function(arrayArg){
+                    _ndMgrClass.prototype.preLoadTmpl=function(arrayArg){
                        this._fn_parser(arrayArg,'_preLoadTmpl'); 
                    };
-                    _nd.prototype.addListeners=function(arrayArg){
-                       this._fn_parser(arrayArg,'_addListeners'); 
+                    _ndMgrClass.prototype.listeners=function(key,arrayArg){
+                       this._fn_parser(arrayArg,'_'+key); 
                    };
-                    _nd.prototype.childEventListeners=function(arrayArg){
+                    _ndMgrClass.prototype.childEventListeners=function(arrayArg){
                        this._fn_parser(arrayArg,'_childEventListeners'); 
                    };
-                    _nd.prototype.postFetchChildMd=function(arrayArg){
+                    _ndMgrClass.prototype.postFetchChildMd=function(arrayArg){
                        this._fn_parser(arrayArg,'_postFetchChildMd'); 
                    };
-                     _nd.prototype.exit=function(arrayArg){
+                     _ndMgrClass.prototype.exit=function(arrayArg){
                        this._fn_parser(arrayArg,'_exit');
                     };                   
+                    _ndMgrClass.prototype.global=function(key,arrayArg){
+                       this._fn_parser(arrayArg,'_$'+key);
+                    };
 
-                }
-
-                resources.nodeClass[key]=_nd;
-            }
-        }
-    };
-
-        
     function filters() {
         api.filters(arguments[0], arguments[1]);
     }
-
+    function build(){
+        api.build(arguments);
+    }
     function factory() {
         api.factory(arguments[0], arguments[1]);
     }
@@ -328,7 +364,8 @@ var $nx = (function () {
         'constants': constants,
         'module': module,
         'nodeMgr': nodeMgr,
-        'node':node
+        'node':node,
+        'start':start
     }
 });
 //TODO, waiting to be made ready as an class for injection
@@ -385,7 +422,7 @@ nx.constants('constant', function(){
 });
 
 
-nx.node('$tab',['$nxAjax','constants',function($nxAjax,constants){
+/*nx.node('$tab',['$nxAjax','constants',function($nxAjax,constants){
     return{
         'dom':'<div id="tab"></div>',
         'template':'',
@@ -399,7 +436,7 @@ nx.node('$tab',['$nxAjax','constants',function($nxAjax,constants){
 
             }
         },
-        'listeners':{
+        'global':{
             'entry':function(){
 
             },
@@ -412,20 +449,41 @@ nx.node('$tab',['$nxAjax','constants',function($nxAjax,constants){
         }
 
     }
-}]);
+}]);*/
+nx.node('$tab',['constants',function(constants){
+    this.dom='<div id="tab"><div id="tab_wraper"></div></div>';
+    this.template='';
+    this.class=['impl_class1','impl_class2'];
+    this.tab_wraper='<div id="tab_wraper"></div>';
+    this.extraParamAjax(function(){
+        //this is $nxAjax
+    });
+    this.addListeners('tabClick',['constants',function(constants){
 
-nx.nodeMgr('node0','$tab',['constants',function($tabObj,constants){
-           $tabObj.entry(function(config){
+    }]);
+    this.addListeners('tabMove',['constants',function(constants){
+        
+    }]);
+    this.exit(['constants',function(constants){
+        // global exit
+    }]);
+}]);
+nx.nodeMgr('node0','$tab',['constants',function(constants){
+           this.entry(function(config){
             console.log(config);
         // now entry is done start the templating process , listeners , exit, then fire communinication 
         //to parent node
                     
            });
-           $tabObj.preLoadTmpl(['constant',function(constant){
+           this.preLoadTmpl(['constant',function(constant){
+                //we get tabodj having its md also constants module access
+           }]);
+           this.global('entry',['constant',function(constant){
                 //we get tabodj having its md also constants module access
            }]);
            
 }]);
+$( document ).ready(nx.start());
 //TO DO: thieses methods to be implemented
 /*app.nodeMgr('node0',['constant',function(constant){
     var cn=constant;

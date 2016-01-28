@@ -10,4 +10,4 @@ This is an js Framework built with a simple design architecture
 2. Open the node console ,install the NodeJS dependencies: `sudo npm install`(for MAC) / 'npm install'(for Windows).
 This will build all the server side js that are needed into the 'node modules directory' as per said in package.json.
 3. Install bower as 'npm install -g bower' (if not installed)
-4. Start the server by saying 'node start'
+4. Start by saying 'npm start'

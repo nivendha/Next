@@ -2,7 +2,7 @@
   "name": "Next",
   "version": "0.1.0",
   "scripts": {
-      "start": "bower install && gulp build"
+      "start": "bower install && gulp"
       },
   "dependencies": {
     "body-parser": "^1.13.0",

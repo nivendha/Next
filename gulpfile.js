@@ -146,4 +146,5 @@ gulp.task('watch', function() {
  * Gulp tasks
  */
 gulp.task('build', ['usemin','build-custom','build-impl']);
-gulp.task('default', ['build', 'watch']);
+gulp.task('build-watch', ['build', 'watch']);
+gulp.task('default', ['build']);

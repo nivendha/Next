@@ -26,6 +26,16 @@ var resDestPath='app/public/';
 var dest={
     templates: 'templates',
 }
+var next_ImplPath={
+    mainJs: 'app/src/next_studio/next_studio_main.js',
+    readyJs: 'app/src/next_studio/next_studio_ready.js',
+    constants :'app/src/next_studio/constants/*.js',
+    modules: 'app/src/next_studio/modules/*.js',
+    nodes:'app/src/next_studio/nodes/*.js',
+    handlers:'app/src/next_studio/handlers/*.js',
+    custom_templates: 'app/src/next_studio/custom_templates/*.nx',
+    routes:'app/src/next_studio/routes/*.js'
+}
 /*
 *precompile templates EJS
 */
@@ -89,6 +99,26 @@ gulp.task('custom-less', function() {
         .pipe(gulp.dest(resDestPath+'css'));
 });
 
+gulp.task('custom-images', function() {
+    return gulp.src(resPath+paths.images)
+        .pipe(gulp.dest(resDestPath+'img'));
+});
+
+/**
+ * Handle implementation files
+ */
+gulp.task('build-impl', function() {
+    return gulp.src([next_ImplPath.mainJs,
+                    next_ImplPath.routes,
+                    next_ImplPath.constants,
+                    next_ImplPath.modules,
+                    next_ImplPath.nodes,
+                    next_ImplPath.handlers,
+                    next_ImplPath.readyJs
+                    ])
+        .pipe(concat('scriptImpl.min.js'))
+        .pipe(gulp.dest(resDestPath+'js'));
+});
 
 /**
  * Watch custom files
@@ -115,5 +145,5 @@ gulp.task('watch', function() {
 /**
  * Gulp tasks
  */
-gulp.task('build', ['usemin','build-custom']);
+gulp.task('build', ['usemin','build-custom','build-impl']);
 gulp.task('default', ['build', 'watch']);

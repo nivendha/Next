@@ -220,25 +220,9 @@ var $nx = (function () {
 
         }
     };
-    var _ndTypeClass=(function(){
-                        var fn={};
-                        var _nd_api={
-                            '_get_fn':function(_fn){
-                                 return fn[_fn];
-                            },
-                            '_set_fn':function(_fn,obj){
-                                fn[_fn]=obj;
-                            }
-                        };
-                    
-                        this.seter=function(){
-                            return _nd_api._set_fn;
-                        }
-                        this.geter=function(){
-                            return _nd_api._get_fn.apply(this,arguments);
-                        }
-                });
-                _ndTypeClass.prototype._fn_parser=function(arrayArg,_fn){
+     var _CellClass=(function(){
+                    });
+                     _CellClass.prototype._fn_parser=function(arrayArg,_fn){
                         if(typeof arrayArg=='function'){
                                         arrayArg=[arrayArg];
                                     }
@@ -253,30 +237,59 @@ var $nx = (function () {
                                             }]);
                                       }
                      };
-                    _ndTypeClass.prototype.extraParamAjax=function(_fn_callback){
-                     this._fn_parser(_fn_callback,'_extraParamAjax');
-                    },
-                    _ndTypeClass.prototype.entry=function(arrayArg){
+                     _CellClass.prototype.entry=function(arrayArg){
                        this._fn_parser(arrayArg,'_entry');
                     };
-                    _ndTypeClass.prototype.preLoadTmpl=function(arrayArg){
+                    _CellClass.prototype.preLoadTmpl=function(arrayArg){
                        this._fn_parser(arrayArg,'_preLoadTmpl'); 
                    };
-                    _ndTypeClass.prototype.addListeners=function(key,arrayArg){
+                   _CellClass.prototype.postLoadTmpl=function(arrayArg){
+                       this._fn_parser(arrayArg,'postLoadTmpl'); 
+                   };
+                   _CellClass.prototype.exit=function(arrayArg){
+                       this._fn_parser(arrayArg,'_exit');
+                    };
+    var _ndTypeClass= (function(){
+                        // recived nodetype specific config here from which take out
+                        //the node specific listeners and provide implementation handler functions
+                        var fn={};
+                       var _cell_api={
+                            '_get_fn':function(_fn){
+                                 return fn[_fn];
+                            },
+                            '_set_fn':function(_fn,obj){
+                                fn[_fn]=obj;
+                            }
+                        };
+                    
+                        this.seter=function(){
+                            return _cell_api._set_fn;
+                        }
+                        this.geter=function(){
+                         return _cell_api._get_fn.apply(this,arguments);
+                        }
+                    });
+                    _ndTypeClass.prototype.extraParamAjax=function(_fn_callback){
+                     this._fn_parser(_fn_callback,'_extraParamAjax');
+                    };
+                   _ndTypeClass.prototype.addListeners=function(key,arrayArg){
                        this._fn_parser(arrayArg,'_'+key); 
                    };
                     _ndTypeClass.prototype.postFetchChildMd=function(arrayArg){
                        this._fn_parser(arrayArg,'_postFetchChildMd'); 
                    };
-                     _ndTypeClass.prototype.exit=function(arrayArg){
+                    _ndTypeClass.prototype.exit=function(arrayArg){
                        this._fn_parser(arrayArg,'_exit');
                     }; 
-    var _ndMgrClass=(function(_nodeTypeClass){
+     _ndTypeClass=Object.merge(_ndTypeClass,_CellClass);
+    var _ndMgrClass= (function(config){
                         // recived nodetype specific config here from which take out
                         //the node specific listeners and provide implementation handler functions
                         var fn={};
-                        fn.config=_nodeTypeClass;
-                        var _nd_api={
+                        if(config!=undefined){
+                        fn.config=config;
+                        }
+                        var _cell_api={
                             '_get_fn':function(_fn){
                                  return fn[_fn];
                             },
@@ -286,49 +299,22 @@ var $nx = (function () {
                         };
                     
                         this.seter=function(){
-                            return _nd_api._set_fn;
+                            return _cell_api._set_fn;
                         }
                         this.geter=function(){
-                         return _nd_api._get_fn.apply(this,arguments);
+                         return _cell_api._get_fn.apply(this,arguments);
                         }
                     });
-                     _ndMgrClass.prototype._fn_parser=function(arrayArg,_fn){
-                        if(typeof arrayArg=='function'){
-                                        arrayArg=[arrayArg];
-                                    }
-                                     var fn_index = arrayArg.length-1;
-                                     var dependancies = arrayArg.slice(0, -1);
-                                      if (typeof arrayArg[fn_index] === "function") {
-                                        dependancies=api.loadDependancies(dependancies);
-                                        this.seter().apply(this,[_fn,
-                                            {
-                                            'dependancies':dependancies,
-                                            '_fn':arrayArg[fn_index]
-                                            }]);
-                                      }
-                     };
-                     _ndMgrClass.prototype.entry=function(arrayArg){
-                       this._fn_parser(arrayArg,'_entry');
-                    };
-                    _ndMgrClass.prototype.preLoadTmpl=function(arrayArg){
-                       this._fn_parser(arrayArg,'_preLoadTmpl'); 
-                   };
                     _ndMgrClass.prototype.listeners=function(key,arrayArg){
                        this._fn_parser(arrayArg,'_'+key); 
                    };
                     _ndMgrClass.prototype.childEventListeners=function(arrayArg){
                        this._fn_parser(arrayArg,'_childEventListeners'); 
                    };
-                    _ndMgrClass.prototype.postFetchChildMd=function(arrayArg){
-                       this._fn_parser(arrayArg,'_postFetchChildMd'); 
-                   };
-                     _ndMgrClass.prototype.exit=function(arrayArg){
-                       this._fn_parser(arrayArg,'_exit');
-                    };                   
-                    _ndMgrClass.prototype.global=function(key,arrayArg){
+                   _ndMgrClass.prototype.global=function(key,arrayArg){
                        this._fn_parser(arrayArg,'_$'+key);
                     };
-
+    _ndMgrClass=Object.merge(_ndMgrClass,_CellClass);
     function filters() {
         api.filters(arguments[0], arguments[1]);
     }
@@ -387,6 +373,10 @@ var $nx = (function () {
     }
 });
 
-
-
-
+Object.prototype.merge=function (o, p) {
+for(prop in p.prototype) { // For all props in p.
+if (o.hasOwnProperty[prop]) continue; // Except those already in o.
+o.prototype[prop] = p.prototype[prop]; // Add the property to o.
+}
+return o;
+}

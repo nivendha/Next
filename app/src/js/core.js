@@ -193,11 +193,10 @@ var $nx = (function () {
         'start':function(){
             //1)read maper json
             var _map=resources._mapperJson=mapperJson;
-           
+            
                 if(_map.id!=undefined){
                     var ndMgr=resources.node[_map.id];
-                    //var ndMgr=nd.geter();
-                    var ndTyp_conf=ndMgr.geter('config');
+                    var _TypScope,ndTyp_conf=_TypScope=ndMgr.geter('config');
                     ndTyp_conf.raiseMgrEvent=function(key,data){
                         var event=ndMgr.geter(key);
                         if(event!=undefined){
@@ -220,10 +219,33 @@ var $nx = (function () {
                     ent_obj._fn.apply(ndTyp_conf,ent_obj.dependancies);
 
                     var extraParamAjax_obj=ndTyp_conf.geter('_extraParamAjax');
-                    ndTyp_conf.extraParams=extraParamAjax_obj._fn.apply(api.loadModule('nxAjax'),extraParamAjax_obj.dependancies);
+                    var promise=new Promise(function(resolve, reject) {
+                        if(extraParamAjax_obj!=undefined){
+                        var scope={'config':_TypScope,'return':resolve,'error':reject};
+                        extraParamAjax_obj._fn.apply(scope,extraParamAjax_obj.dependancies);
+                        }else{resolve('');}
+                    })
+                    .then(function(extraParams){
+                        _TypScope.extraParams=extraParams;
 
-                    var preLoadTmpl_obj=ndTyp_conf.geter('_preLoadTmpl');
-                    preLoadTmpl_obj._fn.apply(ndTyp_conf,preLoadTmpl_obj.dependancies);
+                        var promise=new Promise(function(resolve, reject) {
+                            if(_TypScope.dom==undefined && _TypScope.dom.length==0){
+                            var scope={'config':_TypScope,'return':resolve,'error':reject};
+                             var preLoadTmpl_obj=_TypScope.geter('_preLoadTmpl');
+                             preLoadTmpl_obj._fn.apply(scope,preLoadTmpl_obj.dependancies);
+                            }else{resolve(_TypScope.dom);}
+                        })
+                        .then(function(template){
+                            _TypScope.dom=template;
+                            console.log('need to call implementation manager preLoadTmpl through raiseMgrEvent');
+
+                        });
+
+                    });
+                    //ndTyp_conf.extraParams=extraParamAjax_obj._fn.apply(api.loadModule('nxAjax'),extraParamAjax_obj.dependancies);
+
+                    //var preLoadTmpl_obj=ndTyp_conf.geter('_preLoadTmpl');
+                    //preLoadTmpl_obj._fn.apply(ndTyp_conf,preLoadTmpl_obj.dependancies);
 
                     var postLoadTmpl_obj=ndTyp_conf.geter('_postLoadTmpl');
                     postLoadTmpl_obj._fn.apply(ndTyp_conf,postLoadTmpl_obj.dependancies);
@@ -246,6 +268,7 @@ var $nx = (function () {
                     exit_obj._fn.apply(ndTyp_conf,exit_obj.dependancies);
 
             }
+
             //2)build the node
 
         }

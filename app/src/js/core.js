@@ -198,8 +198,25 @@ var $nx = (function () {
                     var ndMgr=resources.node[_map.id];
                     //var ndMgr=nd.geter();
                     var ndTyp_conf=ndMgr.geter('config');
+                    ndTyp_conf.raiseMgrEvent=function(key,data){
+                        var event=ndMgr.geter(key);
+                        if(event!=undefined){
+                            if(data!=undefined){
+                            event.dependancies.unshift(data);
+                            }
+                        event._fn.apply(ndMgr,event.dependancies);
+                        }
+                    }
+
+                    //TO_DO: PARENT NODE childEventListeners NEED TO BE FIRED ACORDINGLY
+                    //call the mgr global entyr if defined then pass its return value to the node entry then fire the mgr entry
                     
+                    var _glEnt_obj=ndMgr.geter('_$entry');
                     var ent_obj=ndTyp_conf.geter('_entry');
+                    if(_glEnt_obj!=undefined){
+                    var _obj=_glEnt_obj._fn.apply(ndTyp_conf,_glEnt_obj.dependancies);
+                    ent_obj.dependancies.unshift(_obj);
+                    }
                     ent_obj._fn.apply(ndTyp_conf,ent_obj.dependancies);
 
                     var extraParamAjax_obj=ndTyp_conf.geter('_extraParamAjax');
@@ -211,9 +228,22 @@ var $nx = (function () {
                     var postLoadTmpl_obj=ndTyp_conf.geter('_postLoadTmpl');
                     postLoadTmpl_obj._fn.apply(ndTyp_conf,postLoadTmpl_obj.dependancies);
 
-                    var exit_obj=ndTyp_conf.geter('_exit');
-                    exit_obj._fn.apply(ndTyp_conf,exit_obj.dependancies);
+                    //binding the listeners to the dom after postload
+                    var listenersArray=ndTyp_conf.getListeners();
+                    for(var i=0,length=listenersArray.length;i<length;i++){
+                        if(listenersArray[i].startsWith('__')){
+                            var listener_obj=ndTyp_conf.geter(listenersArray[i]);
+                            listener_obj._fn.apply(ndTyp_conf,listener_obj.dependancies);
+                        }
+                    }
 
+                    var _glExt_obj=ndMgr.geter('_$entry');
+                    var exit_obj=ndTyp_conf.geter('_entry');
+                    if(_glExt_obj!=undefined){
+                    var _obj=_glExt_obj._fn.apply(ndTyp_conf,_glExt_obj.dependancies);
+                    exit_obj.dependancies.unshift(_obj);
+                    }
+                    exit_obj._fn.apply(ndTyp_conf,exit_obj.dependancies);
 
             }
             //2)build the node
@@ -244,7 +274,7 @@ var $nx = (function () {
                        this._fn_parser(arrayArg,'_preLoadTmpl'); 
                    };
                    _CellClass.prototype.postLoadTmpl=function(arrayArg){
-                       this._fn_parser(arrayArg,'postLoadTmpl'); 
+                       this._fn_parser(arrayArg,'_postLoadTmpl'); 
                    };
                    _CellClass.prototype.exit=function(arrayArg){
                        this._fn_parser(arrayArg,'_exit');
@@ -259,29 +289,35 @@ var $nx = (function () {
                             },
                             '_set_fn':function(_fn,obj){
                                 fn[_fn]=obj;
+                            },
+                            '_getListeners':function(){
+                                return Object.keys(fn);
                             }
                         };
                     
                         this.seter=function(){
                             return _cell_api._set_fn;
-                        }
+                        };
                         this.geter=function(){
                          return _cell_api._get_fn.apply(this,arguments);
-                        }
+                        };
+                        this.getListeners=function(){
+                            return _cell_api._getListeners.apply(this,arguments);
+                        };
                     });
                     _ndTypeClass.prototype.extraParamAjax=function(_fn_callback){
                      this._fn_parser(_fn_callback,'_extraParamAjax');
                     };
                    _ndTypeClass.prototype.addListeners=function(key,arrayArg){
-                       this._fn_parser(arrayArg,'_'+key); 
+                       this._fn_parser(arrayArg,'__'+key); 
                    };
                     _ndTypeClass.prototype.postFetchChildMd=function(arrayArg){
                        this._fn_parser(arrayArg,'_postFetchChildMd'); 
                    };
                     _ndTypeClass.prototype.exit=function(arrayArg){
                        this._fn_parser(arrayArg,'_exit');
-                    }; 
-     _ndTypeClass=Object.merge(_ndTypeClass,_CellClass);
+                    };
+     _ndTypeClass=merge(_ndTypeClass,_CellClass);
     var _ndMgrClass= (function(config){
                         // recived nodetype specific config here from which take out
                         //the node specific listeners and provide implementation handler functions
@@ -306,7 +342,7 @@ var $nx = (function () {
                         }
                     });
                     _ndMgrClass.prototype.listeners=function(key,arrayArg){
-                       this._fn_parser(arrayArg,'_'+key); 
+                       this._fn_parser(arrayArg,'__'+key); 
                    };
                     _ndMgrClass.prototype.childEventListeners=function(arrayArg){
                        this._fn_parser(arrayArg,'_childEventListeners'); 
@@ -314,7 +350,7 @@ var $nx = (function () {
                    _ndMgrClass.prototype.global=function(key,arrayArg){
                        this._fn_parser(arrayArg,'_$'+key);
                     };
-    _ndMgrClass=Object.merge(_ndMgrClass,_CellClass);
+    _ndMgrClass=merge(_ndMgrClass,_CellClass);
     function filters() {
         api.filters(arguments[0], arguments[1]);
     }
@@ -373,7 +409,7 @@ var $nx = (function () {
     }
 });
 
-Object.prototype.merge=function (o, p) {
+function merge(o, p) {
 for(prop in p.prototype) { // For all props in p.
 if (o.hasOwnProperty[prop]) continue; // Except those already in o.
 o.prototype[prop] = p.prototype[prop]; // Add the property to o.

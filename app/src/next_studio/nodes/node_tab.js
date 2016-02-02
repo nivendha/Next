@@ -7,9 +7,15 @@ nx.node('$tab',['constants',function(constants){
     this.class=['impl_class1','impl_class2'];
     //this.tab_wraper='<div id="tab_wraper"></div>';
     this.extraParamAjax(function(){
-        //this is $nxAjax
+        var _nd=this;
+        setTimeout(function(){
+            _nd.return('yes2');
+        },500);
+
     });
     this.preLoadTmpl(function(){
+        
+        this.raiseMgrEvent('_preLoadTmpl',this);
         //at this point we get this node's config and value of extraParamAjax and the template ajax call is in ready to call
     });
     this.postLoadTmpl(function(){

@@ -1,45 +1,39 @@
-
+/*
+*THE BUSSINESS_MD IS DRAWN AS PER node0
+*/
 nx.nodeMgr('node0','$tab',['constants',function(constants){
            this.entry(function(config){
             console.log(config);
-        // now entry is done start the templating process , listeners , exit, then fire communinication 
-        //to parent node
-                    
+            //at this point the config needed for bussiness Md call is prepared
            });
            this.preLoadTmpl(['constant',function(constant){
+                //we have got the node type dom ready to be appended to the content here
+                //at this point we will make the call for busssiness md and get it ready
+                //we get tabodj having its md ,also constants module access
+           }]);
+           this.postLoadTmpl(['constant',function(constant){
+                //we have appended the dom (procesed with MD) to the content where we need
+                //we get tabodj having its md also constants module access
+           }]);
+           this.listeners('tabClick',['constant',function(data,constant){
+              console.log('tab clicked');
+           }]);
+           this.listeners('tabMove',['constant',function(data,constant){
+                //we get tabodj having its md also constants module access
+           }]);
+           this.childEventListeners(['constant',function(constant){
                 //we get tabodj having its md also constants module access
            }]);
            this.global('entry',['constant',function(constant){
-                //we get tabodj having its md also constants module access
+                //this is a entry fn that gets fired before the FW node entry begins, this will pass params to the FW node entry
+                //then the FW entry fires followed by this mgr entry
+                //MANDATORY RETURN
+                return {};
+           }]);
+            this.global('exit',['constant',function(constant){
+               //this is a exit fn that gets fired before the FW node exit begins, this will pass params to the FW node exit
+                //then the FW exit fires followed by this mgr exit
+                return {};
            }]);
            
 }]);
-
-//TO DO: theses methods to be implemented
-/*app.nodeMgr('node0',['constant',function(constant){
-    var cn=constant;
-    return{
-        'config':{
-         'addToDom':'<div id="root"></div>',
-         'tmplType':'tab'
-          },
-        'preLoadTmpl':function(nodeMd,config){
-            console.log(arguments);
-            nodeMd.tmplType='card';
-        },
-        'postLoadTmpl':function(){
-            //gets the config and parent md if any change is to be neded
-            //can be used to make ajax call to get some other dom or md and this will be passed on 
-            //when the call goes to addListeners
-        },
-        'addListeners':function(){
-            //gets the config and parent md if any change is to be neded
-        },
-        'childEventListeners': function(){
-            //fired internaly by fw for every event occuring in the child
-        },
-        'postFetchChildMd':function(){
-            // an exit function if any child md has to be changed before calling the child nodes
-        }
-    } 
-}]);*/

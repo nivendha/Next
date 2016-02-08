@@ -176,6 +176,10 @@ var $nx = (function () {
         },
          'node':function(key,arrayArg){
             if(key.startsWith('$')){
+             }
+            else{
+                console.log("custom node "+key+": should being registered");
+            }
               var fn_index = arrayArg.length-1;
               var dependancies = arrayArg.slice(0, -1);
                if (typeof arrayArg[fn_index] === "function") {
@@ -183,12 +187,7 @@ var $nx = (function () {
                     var _nodeTypeObj=new _ndTypeClass();
                     arrayArg[fn_index].apply(_nodeTypeObj, api.loadDependancies(dependancies));
                     resources.nodeTypeMd[key]=_nodeTypeObj;
-                }
-             }
-            else{
-                console.log("Error in node "+key+": should starts with $");
-            }
-            
+                }            
         },
         'start':function(){
             //1)read maper json
@@ -196,7 +195,102 @@ var $nx = (function () {
             
                 if(_map.id!=undefined){
                     var ndMgr=resources.node[_map.id];
-                    var _TypScope,ndTyp_conf=_TypScope=ndMgr.geter('config');
+                     //2)build the node
+                //make an ajax call to intiate the node to build
+                    var ndTyp_conf=ndMgr.geter('config');       
+                    this.build(ndTyp_conf,ndMgr);
+
+            }
+
+           
+        },
+        'build':function(nodetype,implObj,parentNode){
+            /*this gets 2 params (node type and implementation obj)
+                the node type defines the type of node to be taken from resource nodetype md and
+                the impl obj can be two things
+                =>if this is the parent node type this would be the implementation obj (ndmgr)
+                =>if build is called in for sub nodes that are imported this will be the parent obj to which the raise event should
+                deligate the listeners added to it
+
+            */     
+            var _TypScope=nodetype;
+            var _implObj=implObj;
+            _TypScope.raiseMgrEvent=function(key,data){
+                        //check for 
+                        if(data.impNode!=undefined){
+                        console.log('need to deligate event to parent');
+                        var deligateEvent=implObj.geter(key+'/'+data.impNode);
+                        console.log('deligateEvent:'+deligateEvent);
+                        }else{
+                            var event=implObj.geter(key);
+                            if(event!=undefined){
+                                if(data!=undefined){
+                                event.dependancies.unshift(data);
+                                }
+                            event._fn.apply(_TypScope,event.dependancies);
+                            }
+                        }
+                        
+                    }
+            var childNode=_TypScope.impNode;
+
+            var ent_obj=_TypScope.geter('_entry');
+            if(childNode==undefined){
+                var _glEnt_obj=_implObj.geter('_$entry');
+                if(_glEnt_obj!=undefined){
+                    var _obj=_glEnt_obj._fn.apply(_TypScope,_glEnt_obj.dependancies);
+                    ent_obj.dependancies.unshift(_obj);
+                    }
+            }
+            ent_obj._fn.apply(_TypScope,ent_obj.dependancies);
+
+            var extraParamAjax_obj=_TypScope.geter('_extraParamAjax');
+                    var promise=new Promise(function(resolve, reject) {
+                        if(extraParamAjax_obj!=undefined){
+                        var scope={'config':_TypScope,'return':resolve,'error':reject};
+                        extraParamAjax_obj._fn.apply(scope,extraParamAjax_obj.dependancies);
+                        }else{resolve('');}
+            }).then(function(extraParams){
+              _TypScope.extraParams=extraParams;
+
+                        var promise=new Promise(function(resolve, reject) {
+                            if(_TypScope.dom==undefined && _TypScope.dom.length==0){
+                            var scope={'config':_TypScope,'return':resolve,'error':reject};
+                             var preLoadTmpl_obj=_TypScope.geter('_preLoadTmpl');
+                             preLoadTmpl_obj._fn.apply(scope,preLoadTmpl_obj.dependancies);
+                            }else{resolve(_TypScope.dom);}
+                        })
+                        .then(function(template){
+                            _TypScope.dom=template;
+                            console.log('need to call implementation manager preLoadTmpl through raiseMgrEvent');
+                            console.log('begin the build imports');
+                            var build_obj=_TypScope.geter('_$build');
+                            if(build_obj!=undefined){
+                            var importNodes=build_obj._fn.apply(_TypScope,build_obj.dependancies);
+                            _TypScope.imports={};
+                            for (var keys=Object.keys(importNodes),i = keys.length - 1; i >= 0; i--) {
+                                var child=importNodes[keys[i]];
+                                 var nd=resources.nodeTypeMd[child];
+                                 //make a clone of nd
+
+                                 var childNodeType=_TypScope.imports[keys[i]]=nd;
+                                 childNodeType.impNode=keys[i];
+                                 api.build(childNodeType,_implObj,_TypScope);
+                            }
+                           }else{
+                            //there is no more child so template is ready make call for inspector providing the template and
+                            //the md that goes to it before compiling the temp
+                            console.log('no more childs to build for:'+_TypScope);
+                           }
+                           //template is ready 
+
+                        });
+
+            });
+        },
+        'buildDummy':function(ndMgr){
+
+                var _TypScope,ndTyp_conf=_TypScope=ndMgr.geter('config');
                     ndTyp_conf.raiseMgrEvent=function(key,data){
                         var event=ndMgr.geter(key);
                         if(event!=undefined){
@@ -238,7 +332,14 @@ var $nx = (function () {
                         .then(function(template){
                             _TypScope.dom=template;
                             console.log('need to call implementation manager preLoadTmpl through raiseMgrEvent');
-
+                            console.log('begin the build imports');
+                            var build_obj=_TypScope.geter('_$build');
+                            var importNodes=build_obj._fn.apply(_TypScope,build_obj.dependancies);
+                            for (var keys=Object.keys(importNodes),i = keys.length - 1; i >= 0; i--) {
+                                var child=importNodes[keys[i]];
+                                 var nd=resources.nodeTypeMd[child];
+                            };
+                           
                         });
 
                     });
@@ -259,24 +360,21 @@ var $nx = (function () {
                         }
                     }
 
-                    var _glExt_obj=ndMgr.geter('_$entry');
-                    var exit_obj=ndTyp_conf.geter('_entry');
+                    var _glExt_obj=ndMgr.geter('_$exit');
+                    var exit_obj=ndTyp_conf.geter('_exit');
                     if(_glExt_obj!=undefined){
                     var _obj=_glExt_obj._fn.apply(ndTyp_conf,_glExt_obj.dependancies);
                     exit_obj.dependancies.unshift(_obj);
                     }
                     exit_obj._fn.apply(ndTyp_conf,exit_obj.dependancies);
 
-            }
-
-            //2)build the node
 
         }
     };
      var _CellClass=(function(){
                     });
                      _CellClass.prototype._fn_parser=function(arrayArg,_fn){
-                        if(typeof arrayArg=='function'){
+                        if(typeof arrayArg=='function'  || typeof arrayArg=='Object'){
                                         arrayArg=[arrayArg];
                                     }
                                      var fn_index = arrayArg.length-1;
@@ -333,6 +431,12 @@ var $nx = (function () {
                     };
                    _ndTypeClass.prototype.addListeners=function(key,arrayArg){
                        this._fn_parser(arrayArg,'__'+key); 
+                   };
+                   _ndTypeClass.prototype.implChildListeners=function(node,key,arrayArg){
+                       this._fn_parser(arrayArg,'__'+key+'/'+node); 
+                   };
+                   _ndTypeClass.prototype.build=function(arrayArg){
+                       this._fn_parser(arrayArg,'_$build'); 
                    };
                     _ndTypeClass.prototype.postFetchChildMd=function(arrayArg){
                        this._fn_parser(arrayArg,'_postFetchChildMd'); 

@@ -1,7 +1,7 @@
 /*
 *THE BUSSINESS_MD IS DRAWN AS PER node0
 */
-nx.nodeMgr('node0','$tab',['constants',function(constants){
+nx.nodeMgr('node0','login',['constants',function(constants){
            this.entry(function(config){
             console.log(config);
             //at this point the config needed for bussiness Md call is prepared

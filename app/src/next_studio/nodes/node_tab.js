@@ -92,12 +92,18 @@ nx.node('login',['constants',function(constants){
     });
     this.build(function(){
         return{ 
-        'TAB':'$tab'
+        'TAB':'$tab',
+        'TEXT':'$textField'
         }
     });
     this.implChildListeners('TAB','tabClick',['constants',function(data,constants){
        console.log(data);
-    
+        this.raiseMgrEvent('_tabClick',this);
+
+    }]);
+    this.implChildListeners('TEXT','focus',['constants',function(data,constants){
+       console.log(data);
+        this.raiseMgrEvent('_focus',this);
 
     }]);
     this.addListeners('login',['constants',function(constants){

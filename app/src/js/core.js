@@ -198,13 +198,13 @@ var $nx = (function () {
                      //2)build the node
                 //make an ajax call to intiate the node to build
                     var ndTyp_conf=ndMgr.geter('config');       
-                    this.build(ndTyp_conf,ndMgr);
+                    this.build.apply(ndTyp_conf,[ndMgr]);
 
             }
 
            
         },
-        'build':function(nodetype,implObj,parentNode){
+        'build':function(implObj,parentNode){
             /*this gets 2 params (node type and implementation obj)
                 the node type defines the type of node to be taken from resource nodetype md and
                 the impl obj can be two things
@@ -213,74 +213,78 @@ var $nx = (function () {
                 deligate the listeners added to it
 
             */     
-            var _TypScope=nodetype;
+            var _node=this;
             var _implObj=implObj;
-            _TypScope.raiseMgrEvent=function(key,data){
+            var _parentNode=parentNode;
+            _node.raiseMgrEvent=function(key,data){
                         //check for 
-                        if(data.impNode!=undefined){
+                        if(this.childNode!=undefined){
                         console.log('need to deligate event to parent');
-                        var deligateEvent=implObj.geter(key+'/'+data.impNode);
-                        console.log('deligateEvent:'+deligateEvent);
+                        var deligateEvent=_parentNode.geter('_'+key+'/'+this.childNode);
+                           if(deligateEvent!=undefined){
+                            if(data!=undefined){
+                                deligateEvent.dependancies.unshift(data);
+                                }
+                                deligateEvent._fn.apply(_parentNode,deligateEvent.dependancies);
+                            }
                         }else{
                             var event=implObj.geter(key);
                             if(event!=undefined){
                                 if(data!=undefined){
                                 event.dependancies.unshift(data);
                                 }
-                            event._fn.apply(_TypScope,event.dependancies);
+                            event._fn.apply(this,event.dependancies);
                             }
                         }
                         
                     }
-            var childNode=_TypScope.impNode;
-
-            var ent_obj=_TypScope.geter('_entry');
-            if(childNode==undefined){
+            var _obj;
+            var ent_obj=_node.geter('_entry');
+            if(this.childNode==undefined){
                 var _glEnt_obj=_implObj.geter('_$entry');
                 if(_glEnt_obj!=undefined){
-                    var _obj=_glEnt_obj._fn.apply(_TypScope,_glEnt_obj.dependancies);
-                    ent_obj.dependancies.unshift(_obj);
+                    _obj=_glEnt_obj._fn.apply(_node,_glEnt_obj.dependancies);
                     }
+                    ent_obj.dependancies.unshift(_obj);
             }
-            ent_obj._fn.apply(_TypScope,ent_obj.dependancies);
+            ent_obj._fn.apply(_node,ent_obj.dependancies);
 
-            var extraParamAjax_obj=_TypScope.geter('_extraParamAjax');
+            var extraParamAjax_obj=_node.geter('_extraParamAjax');
                     var promise=new Promise(function(resolve, reject) {
                         if(extraParamAjax_obj!=undefined){
-                        var scope={'config':_TypScope,'return':resolve,'error':reject};
+                        var scope={'config':_node,'return':resolve,'error':reject};
                         extraParamAjax_obj._fn.apply(scope,extraParamAjax_obj.dependancies);
                         }else{resolve('');}
             }).then(function(extraParams){
-              _TypScope.extraParams=extraParams;
+              _node.extraParams=extraParams;
 
                         var promise=new Promise(function(resolve, reject) {
-                            if(_TypScope.dom==undefined && _TypScope.dom.length==0){
-                            var scope={'config':_TypScope,'return':resolve,'error':reject};
-                             var preLoadTmpl_obj=_TypScope.geter('_preLoadTmpl');
+                            if(_node.dom==undefined && _node.dom.length==0){
+                            var scope={'config':_node,'return':resolve,'error':reject};
+                             var preLoadTmpl_obj=_node.geter('_preLoadTmpl');
                              preLoadTmpl_obj._fn.apply(scope,preLoadTmpl_obj.dependancies);
-                            }else{resolve(_TypScope.dom);}
+                            }else{resolve(_node.dom);}
                         })
                         .then(function(template){
-                            _TypScope.dom=template;
+                            _node.dom=template;
                             console.log('need to call implementation manager preLoadTmpl through raiseMgrEvent');
                             console.log('begin the build imports');
-                            var build_obj=_TypScope.geter('_$build');
+                            var build_obj=_node.geter('_$build');
                             if(build_obj!=undefined){
-                            var importNodes=build_obj._fn.apply(_TypScope,build_obj.dependancies);
-                            _TypScope.imports={};
+                            var importNodes=build_obj._fn.apply(_node,build_obj.dependancies);
+                            _node.imports={};
                             for (var keys=Object.keys(importNodes),i = keys.length - 1; i >= 0; i--) {
                                 var child=importNodes[keys[i]];
-                                 var nd=resources.nodeTypeMd[child];
-                                 //make a clone of nd
-
-                                 var childNodeType=_TypScope.imports[keys[i]]=nd;
-                                 childNodeType.impNode=keys[i];
-                                 api.build(childNodeType,_implObj,_TypScope);
+                                 var nd=$.extend({},resources.nodeTypeMd[child]);
+                                 //make a clone of nd type
+                                 var childNodeType=_node.imports[keys[i]]=nd;
+                                 childNodeType.childNode=keys[i];
+                                 api.build.apply(childNodeType,[implObj,_node]);
                             }
                            }else{
                             //there is no more child so template is ready make call for inspector providing the template and
                             //the md that goes to it before compiling the temp
-                            console.log('no more childs to build for:'+_TypScope);
+                            console.log('no more childs to build for:'+_node);
                            }
                            //template is ready 
 

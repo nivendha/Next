@@ -191,20 +191,22 @@ var $nx = (function () {
         },
         'start':function(){
             //1)read maper json
-            var _map=resources._mapperJson=mapperJson;
+           
+            this.readMap();
+           
+        },
+        'readMap':function(){
+             var _map=resources._mapperJson=mapperJson;
             
                 if(_map.id!=undefined){
                     var ndMgr=resources.node[_map.id];
                      //2)build the node
                 //make an ajax call to intiate the node to build
                     var ndTyp_conf=ndMgr.geter('config');       
-                    this.build.apply(ndTyp_conf,[ndMgr]);
-
+                    this.buildNodeTemplate.apply(ndTyp_conf,[ndMgr]);
             }
-
-           
         },
-        'build':function(implObj,parentNode){
+        'buildNodeTemplate':function(implObj,parentNode,promiseCallback){
             /*this gets 2 params (node type and implementation obj)
                 the node type defines the type of node to be taken from resource nodetype md and
                 the impl obj can be two things
@@ -216,11 +218,12 @@ var $nx = (function () {
             var _node=this;
             var _implObj=implObj;
             var _parentNode=parentNode;
+            var _promiseCallback=promiseCallback;
             _node.raiseMgrEvent=function(key,data){
                         //check for 
                         if(this.childNode!=undefined){
                         console.log('need to deligate event to parent');
-                        var deligateEvent=_parentNode.geter('_'+key+'/'+this.childNode);
+                        var deligateEvent=_parentNode.geter(key+'/'+this.childNode);
                            if(deligateEvent!=undefined){
                             if(data!=undefined){
                                 deligateEvent.dependancies.unshift(data);
@@ -267,29 +270,90 @@ var $nx = (function () {
                         })
                         .then(function(template){
                             _node.dom=template;
-                            console.log('need to call implementation manager preLoadTmpl through raiseMgrEvent');
-                            console.log('begin the build imports');
                             var build_obj=_node.geter('_$build');
                             if(build_obj!=undefined){
                             var importNodes=build_obj._fn.apply(_node,build_obj.dependancies);
+                            }
+                            if(importNodes!=undefined){
                             _node.imports={};
+                            _node.importReady=[];
                             for (var keys=Object.keys(importNodes),i = keys.length - 1; i >= 0; i--) {
                                 var child=importNodes[keys[i]];
                                  var nd=$.extend({},resources.nodeTypeMd[child]);
                                  //make a clone of nd type
                                  var childNodeType=_node.imports[keys[i]]=nd;
                                  childNodeType.childNode=keys[i];
-                                 api.build.apply(childNodeType,[implObj,_node]);
+                                 //api.buildNodeTemplate.apply(childNodeType,[implObj,_node]);
+                                 console.log('built'+_node);
+                                 var promise=new Promise(function(resolve, reject) {
+                                    api.buildNodeTemplate.apply(childNodeType,[implObj,_node,resolve]);
+                                 })
+                                 .then(function(_childNode){
+                                var childDomPointer=_node.dom.find('[node='+_childNode.childNode+']');
+                                 var childInnerDom=childDomPointer[0].innerHTML;
+                                 if(childDomPointer!=undefined){
+                                    $(childDomPointer).empty().append(_childNode.dom);
+                                 }
+                                if(_childNode.innerWraper!=undefined){
+                                    _childNode.innerWraper.append(childInnerDom);
+                                 }
+                                 console.log(_node.dom);
+                                 _node.importReady.push(_childNode.childNode);
+                                     if(_node.importReady.length==keys.length){
+                                      console.log('all child nodes built');
+                                       var _preLoadChildTmpl_obj=_node.geter('_preLoadChildTmpl');
+                                        if(_preLoadChildTmpl_obj!=undefined){
+                                        _preLoadChildTmpl_obj._fn.apply(_node,_preLoadChildTmpl_obj.dependancies);
+                                        api.compileTemplate.apply({},[_implObj]);
+                                        }
+                                    }
+                                 });
+                                
                             }
+                                
+
                            }else{
+                            console.log('no more childs to build for:'+_node);
+                            if(_promiseCallback!=undefined)
+                            _promiseCallback(_node);
+                            else if(_parentNode==undefined){
+                                console.log('singular node without imports');
+                               api.compileTemplate.apply({},[_implObj]);
+                            }else{
+                                console.log('somethimg is wrong here');
+                            }
+                           }
+
+                           //template is ready 
                             //there is no more child so template is ready make call for inspector providing the template and
                             //the md that goes to it before compiling the temp
-                            console.log('no more childs to build for:'+_node);
-                           }
-                           //template is ready 
-
+                            //console.log('begin md process');
                         });
 
+            });
+        },
+        'compileTemplate':function(nodeMgr){
+
+            this._nodeMgr=nodeMgr;
+            this._node=this._nodeMgr.geter('config');
+            this.mdSrc=this._nodeMgr.mdSrc;
+            if(this.mdSrc!=undefined){
+                //read data source id from maper
+
+           }
+            api.loadModule('nxAjax').getNodeData(this.mdSrc,this,function(data){
+                var that=this;
+                if(this._node.nodeMd==undefined)
+                this._node.nodeMd=data;
+                var promise=new Promise(function(resolve, reject) {
+                            if(that._node.dom!=undefined && that._node.dom.length!=0){
+                            var scope={'config':that._node,'return':resolve,'error':reject};
+                             var nodeDataReady_obj=that._node.geter('_nodeDataReady');
+                             nodeDataReady_obj._fn.apply(scope,nodeDataReady_obj.dependancies);
+                            }else{resolve(that);}
+                        }).then(function(data){
+                            console.log(that);
+                        })
             });
         },
         'buildDummy':function(ndMgr){
@@ -398,6 +462,12 @@ var $nx = (function () {
                     _CellClass.prototype.preLoadTmpl=function(arrayArg){
                        this._fn_parser(arrayArg,'_preLoadTmpl'); 
                    };
+                   _CellClass.prototype.preLoadChildTmpl=function(arrayArg){
+                       this._fn_parser(arrayArg,'_preLoadChildTmpl'); 
+                   };
+                    _CellClass.prototype.nodeDataReady=function(arrayArg){
+                       this._fn_parser(arrayArg,'_nodeDataReady'); 
+                   }; 
                    _CellClass.prototype.postLoadTmpl=function(arrayArg){
                        this._fn_parser(arrayArg,'_postLoadTmpl'); 
                    };
@@ -437,7 +507,7 @@ var $nx = (function () {
                        this._fn_parser(arrayArg,'__'+key); 
                    };
                    _ndTypeClass.prototype.implChildListeners=function(node,key,arrayArg){
-                       this._fn_parser(arrayArg,'__'+key+'/'+node); 
+                       this._fn_parser(arrayArg,'_'+key+'/'+node); 
                    };
                    _ndTypeClass.prototype.build=function(arrayArg){
                        this._fn_parser(arrayArg,'_$build'); 
@@ -481,6 +551,8 @@ var $nx = (function () {
                    _ndMgrClass.prototype.global=function(key,arrayArg){
                        this._fn_parser(arrayArg,'_$'+key);
                     };
+                   
+
     _ndMgrClass=merge(_ndMgrClass,_CellClass);
     function filters() {
         api.filters(arguments[0], arguments[1]);

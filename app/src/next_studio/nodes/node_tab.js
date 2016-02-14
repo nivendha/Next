@@ -2,7 +2,7 @@
 *THE APP_MD IS DRAWN AS PER $TAB
 */
 nx.node('$tab',['constants',function(constants){
-    this.dom=$('<div id="tab"><div id="tab_wraper"><div data-Type="D_cell">1</div><div data-Type="D_cell">2</div></div></div>');
+    this.dom=$('<div id="tab"><div node_wraper_id="tab_wraper"><div data-Type="D_cell">1</div><div data-Type="D_cell">2</div></div></div>');
     this.template='';
     this.class=['impl_class1','impl_class2'];
     //this.tab_wraper='<div id="tab_wraper"></div>';
@@ -40,7 +40,7 @@ nx.node('$tab',['constants',function(constants){
     }]);
 }]);
 nx.node('$textField',['constants',function(constants){
-    this.dom=$('<div id="textField">textField</div>');
+    this.dom=$('<div id="textField"><div node_wraper_id="textfld_wraper">textField</div></div>');
     this.template='';
     this.class=['impl_class1','impl_class2'];
     //this.tab_wraper='<div id="tab_wraper"></div>';
@@ -71,7 +71,7 @@ nx.node('$textField',['constants',function(constants){
 }]);
 
 nx.node('login',['constants',function(constants){
-    this.dom=$('<div id="login"><div node="TAB"></div><div node="TEXT"></div></div>');
+    this.dom=$('<div id="login"><div node_wraper_id="logi_wraper"><div node="TAB"></div><div node="TEXT"></div></div></div>');
     this.template='';
     this.class=['impl_class1','impl_class2'];
     //this.tab_wraper='<div id="tab_wraper"></div>';
@@ -87,6 +87,14 @@ nx.node('login',['constants',function(constants){
         this.raiseMgrEvent('_preLoadTmpl',this);
         //at this point we get this node's config and value of extraParamAjax and the template ajax call is in ready to call
     });
+    this.preLoadChildTmpl(function(){
+        this.raiseMgrEvent('_preLoadChildTmpl',this);
+        //at this point we get this node's config and value of extraParamAjax and the template ajax call is in ready to call
+    }); 
+    this.nodeDataReady(function(){
+        this.return(this.config.raiseMgrEvent('_nodeDataReady',this));
+        //at this point we get this node's config and value of extraParamAjax and the template ajax call is in ready to call
+    });  
     this.postLoadTmpl(function(){
         //at this point we have made the template ajax call and template DOM is ready in this.dom,
     });

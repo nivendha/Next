@@ -3,9 +3,10 @@
   "version": "0.1.0",
   "description": "",
   "homepage": "",
-   "dependencies": {
-    "materialize": "~0.97.0",
-    "jsface": "~2.4.9"
+  "dependencies": {
+    "ejs": "~1.0.0",
+    "jsface": "~2.4.9",
+    "materialize": "~0.97.0"
   },
   "directory": "app/src/components",
   "repository": {

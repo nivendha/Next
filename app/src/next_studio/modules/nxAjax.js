@@ -9,9 +9,23 @@ nx.module('nxAjax',[function(){
             dataType:"html"
             });
     };
+    function dataCall(url,data,method){
+        return $.ajax({ 
+            cache: false,
+            url: url,
+            data:data,
+            method: method || "GET",
+            contentType: "application/json",
+            });
+    };
     var api={
-        'getAppData':function getAppData(){
+        'getNodeData':function getAppData(nodeMrSrcId,scope,done,fail){
             console.log(arguments);
+             dataCall('/nodeData',(nodeMrSrcId).trim()).then(function(){
+                    done.apply(scope,arguments);
+                },function(){
+                    fail.apply(scope,arguments);
+                });
         },
         'getData':function getData(){
             console.log(arguments);
@@ -33,11 +47,11 @@ nx.module('nxAjax',[function(){
         'getTemplate':function(){
             api.getTemplate.apply(this,arguments);
         },
-        'getAppData':function(){
-            api.getAppData.apply(this,arguments);
+        'getNodeData':function(){
+            api.getNodeData.apply(this,arguments);
         },
         'getData':function(){
-            api.getAppData.apply(this,arguments);
+            api.getData.apply(this,arguments);
         }
     }
 }]);

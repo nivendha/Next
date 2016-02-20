@@ -171,6 +171,7 @@ var $nx = (function () {
                 arrayArg[fn_index].apply(_ndMgrObj,api.loadDependancies(dependancies));
                 
                 //add this _nMgrObj obj to the _mapper so that it can be intiated when map come to load this node
+                _ndMgrObj.id=key;
                 resources.node[key]=_ndMgrObj;
                }
         },
@@ -186,6 +187,7 @@ var $nx = (function () {
                
                     var _nodeTypeObj=new _ndTypeClass();
                     arrayArg[fn_index].apply(_nodeTypeObj, api.loadDependancies(dependancies));
+                    _nodeTypeObj.id=key;
                     resources.nodeTypeMd[key]=_nodeTypeObj;
                 }            
         },
@@ -204,6 +206,26 @@ var $nx = (function () {
                 //make an ajax call to intiate the node to build
                     var ndTyp_conf=ndMgr.geter('config');       
                     this.buildNodeTemplate.apply(ndTyp_conf,[ndMgr]);
+            }
+        },
+        'getParentMapNode':function(id,json,parent){
+            if(id!=undefined && typeof id=='string'){
+                if(json.id==id){return parent || 'root';}
+                else{
+                    for (var i = json.child.length - 1; i >= 0; i--) {
+                        return api.getParentMapNode(id,json.child[i],json);
+                    }
+                }
+            }
+        },
+        'getMapNode':function(id,json){
+            if(id!=undefined && typeof id=='string'){
+                if(json.id==id){return json}
+                else{
+                    for (var i = json.child.length - 1; i >= 0; i--) {
+                        return api.getMapNode(id,json.child[i]);
+                    }
+                }
             }
         },
         'buildNodeTemplate':function(implObj,parentNode,promiseCallback){
@@ -260,16 +282,31 @@ var $nx = (function () {
                         }else{resolve('');}
             }).then(function(extraParams){
               _node.extraParams=extraParams;
-
                         var promise=new Promise(function(resolve, reject) {
-                            if(_node.dom==undefined && _node.dom.length==0){
+                        if(_node.dom==undefined){
+                            var scope={'config':_node,'return':resolve,'error':reject};
+                            api.loadModule('nxAjax').getTemplate(_node.template,scope,function(data){
+                                this.config.dom=data;
+                                scope.return();
+                            });
+                            }else{
+                               resolve();
+                            }
+                           
+                        }).then(function(){
+                            _node.dom=$(_node.dom);
+                            var promise=new Promise(function(resolve, reject) {
+                            if(_node.class!=undefined)
+                            for (var i = _node.class.length - 1; i >= 0; i--) {
+                                _node.dom.append(_node.class[i]);
+                            }
                             var scope={'config':_node,'return':resolve,'error':reject};
                              var preLoadTmpl_obj=_node.geter('_preLoadTmpl');
+                             if(preLoadTmpl_obj!=undefined){
                              preLoadTmpl_obj._fn.apply(scope,preLoadTmpl_obj.dependancies);
-                            }else{resolve(_node.dom);}
+                            }else{resolve();}
                         })
-                        .then(function(template){
-                            _node.dom=template;
+                        .then(function(){
                             var build_obj=_node.geter('_$build');
                             if(build_obj!=undefined){
                             var importNodes=build_obj._fn.apply(_node,build_obj.dependancies);
@@ -289,16 +326,19 @@ var $nx = (function () {
                                     api.buildNodeTemplate.apply(childNodeType,[implObj,_node,resolve]);
                                  })
                                  .then(function(_childNode){
-                                var childDomPointer=_node.dom.find('[node='+_childNode.childNode+']');
+                                _node.dom=$(_node.dom);
+                                var tempDom=_childNode.dom.clone();
+                                var childDomPointer=_node.dom.find('[data-item-id='+_childNode.childNode+']');
                                  var childInnerDom=childDomPointer[0].innerHTML;
                                  if(childDomPointer!=undefined){
-                                    $(childDomPointer).empty().append(_childNode.dom);
+                                    $(childDomPointer).empty();
+                                    $(childDomPointer).append(tempDom);
                                  }
-                                if(_childNode.innerWraper!=undefined){
-                                    _childNode.innerWraper.append(childInnerDom);
+                                if(tempDom.innerWraper!=undefined){
+                                    tempDom.innerWraper.append(childInnerDom);
                                  }
                                  console.log(_node.dom);
-                                 _node.importReady.push(_childNode.childNode);
+                                 _node.importReady.push(tempDom.childNode);
                                      if(_node.importReady.length==keys.length){
                                       console.log('all child nodes built');
                                        var _preLoadChildTmpl_obj=_node.geter('_preLoadChildTmpl');
@@ -329,6 +369,7 @@ var $nx = (function () {
                             //the md that goes to it before compiling the temp
                             //console.log('begin md process');
                         });
+                     })
 
             });
         },
@@ -351,10 +392,58 @@ var $nx = (function () {
                              var nodeDataReady_obj=that._node.geter('_nodeDataReady');
                              nodeDataReady_obj._fn.apply(scope,nodeDataReady_obj.dependancies);
                             }else{resolve(that);}
-                        }).then(function(data){
+                        }).then(function(){
                             console.log(that);
+                             if(that._node.dom!=undefined && that._node.dom.length!=0){
+                             var template = ejs.compile(that._node.dom[0].outerHTML);
+                             that._node.elem=$(template(that._node.nodeMd));
+                               var postLoadTmpl_obj=that._node.geter('_postLoadTmpl');
+ 
+                                 if(postLoadTmpl_obj){
+                                    postLoadTmpl_obj._fn.apply(that._node,postLoadTmpl_obj.dependancies);
+                                     }
+                                    //add listeners now
+                                    //binding the listeners of parent to the dom after postload
+                                    var listenersArray=that._node.getListeners();
+                                    for(var i=0,length=listenersArray.length;i<length;i++){
+                                        if(listenersArray[i].startsWith('__')){
+                                            var listener_obj=that._node.geter(listenersArray[i]);
+                                            listener_obj._fn.apply(that._node,listener_obj.dependancies);
+                                        }
+                                    }
+                                    //binding child listeners if any
+                                     for(var i=0,length=listenersArray.length;i<length;i++){
+                                        if(listenersArray[i].indexOf('/') > -1){
+                                            var listener_obj=that._node.geter(listenersArray[i]);
+                                            listener_obj._fn.apply(that._node,listener_obj.dependancies);
+                                        }
+                                    }
+                                    //************   need to write exit and global exit *******
+                                   api.nodeRenderer(that._nodeMgr.id);
+                             }else{
+                                 console.log('dom itself not there');
+                             }
                         })
             });
+        },
+        'nodeRenderer':function(nodeMgrId){
+                /*rad maper json and find ekement
+                check fot all childs templates to be ready, if not log erroe
+                get the parent nodemgr id, if not put it to main body
+                get the parent node elem inner innerWraper and append this
+                if child present for this nodeMgr intiate them through promise*/
+                    var ndMap=api.getMapNode(nodeMgrId,resources._mapperJson);
+                    var ndMgrObj=resources.node[ndMap.id];
+                    var ndData=ndMgrObj.geter('config');
+
+                    var parentNdMap=api.getParentMapNode(nodeMgrId,resources._mapperJson);
+                    if(parentNdMap==undefined || parentNdMap=='root'){
+                        $('#main').append(ndData.elem);
+                    }else{
+                    var parentNdMgrObj=resources.node[parentNdMap.id];
+                    var parentNdData=parentNdMgrObj.geter('config');
+                    }
+
         },
         'buildDummy':function(ndMgr){
 

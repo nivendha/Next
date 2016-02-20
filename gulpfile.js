@@ -18,7 +18,7 @@ var paths = {
     scripts: 'js/**/*.js',
     styles: 'css/**/*.css',
     images: 'img/**/*.*',
-    index: 'login.html',
+    index: 'index.html',
     templates: 'templates/**/*.nxt',
     plugins:'plugins/**/*.*',
 };
@@ -33,7 +33,7 @@ var next_ImplPath={
     modules: 'app/src/next_studio/modules/*.js',
     nodes:'app/src/next_studio/nodes/*.js',
     handlers:'app/src/next_studio/handlers/*.js',
-    custom_templates: 'app/src/next_studio/custom_templates/*.nx',
+    custom_templates: 'app/src/next_studio/custom_templates/*.nxt',
     routes:'app/src/next_studio/routes/*.js'
 }
 /*

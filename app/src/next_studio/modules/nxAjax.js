@@ -1,12 +1,13 @@
 nx.module('nxAjax',[function(){
      'use strict';
-    function templateCall(){
+    function templateCall(tmplId){
         return $.ajax({ 
             cache: false,
-            url: arguments[0],
+            url: '/template',
             method: "GET",
             contentType: "application/json",
-            dataType:"html"
+            dataType:"html",
+            data:{"tmplId":tmplId}
             });
     };
     function dataCall(url,data,method){
@@ -33,9 +34,7 @@ nx.module('nxAjax',[function(){
         'getTemplate':function getTemplate(key,scope,done,fail){
           if (typeof key === "string" && typeof done === "function" && typeof scope != "undefined") {
                 fail=typeof fail !='function'?done:fail;
-                var template = key
-                var callbacks = arrayArg;
-                templateCall(key).then(function(){
+                templateCall(key.trim()).then(function(){
                     done.apply(scope,arguments);
                 },function(){
                     fail.apply(scope,arguments);

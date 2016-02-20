@@ -25,8 +25,10 @@ nx.nodeMgr('node0','login',['constants',function(constants){
            this.childEventListeners(['constant',function(constant){
                 //we get tabodj having its md also constants module access
            }]);
-           this.preLoadChildTmpl(['constant',function(constant){
-                
+           this.preLoadChildTmpl(['constant',function(element,constant){
+                //add classes to tmplt
+               element.find('[data-item-id="USER_NAME"]').children().addClass('login__input name').attr('placeholder','Username');
+               element.find('[data-item-id="PASSWORD"]').children().addClass('login__input pass').attr('placeholder','Password');
            }]);
             this.nodeDataReady(['constant',function(constant){
                 
@@ -43,4 +45,12 @@ nx.nodeMgr('node0','login',['constants',function(constants){
                 return {};
            }]);
            
+}]);
+
+nx.nodeMgr('mainNode','main',['constants',function(constants){
+          this.mdSrc='main';           
+}]);
+
+nx.nodeMgr('loginNode','login',['constants',function(constants){
+          this.mdSrc='loginNode';           
 }]);

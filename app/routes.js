@@ -1,5 +1,6 @@
 var Cookies = require("cookies");
 var httprequest = require('request');
+var path    = require("path");
 //var ejs = require('ejs');
 
 /*temporary data*/
@@ -9,17 +10,17 @@ var node0_md={
 
 
 // ENDPOINTS for Views:
-var RV_LOGIN = '/login',
+var RV_APP_MAIN = '/index',
 RV_NODE_DATA= '/nodeData',
-RV_DASHBOARD = '/my-account';
+RV_TEMPLATE = '/template';
 
 module.exports = function(app) {
 	app.get('/', function(request, response){
 	var cookies = new Cookies(request, response);
 		if (cookies.get('uuid') && cookies.get('token')) {
-			response.redirect(RV_LOGIN);
+			response.redirect(RV_APP_MAIN);
 		} else {
-			response.render('login.html');
+			response.render(RV_APP_MAIN);
 		}
 	});
 
@@ -32,12 +33,13 @@ module.exports = function(app) {
 		}
 	});
 
-	app.get(RV_LOGIN, function(request, response){
+	app.get(RV_TEMPLATE, function(request, response){
 		var cookies = new Cookies(request, response);
 		if (cookies.get('uuid') && cookies.get('token')) {
-			response.render('login.html');
+			response.render(request.query.tmplId+'.nxt');
 		} else {
-			response.render('login.html');
+			var tmpltSrc=request.query.tmplId+'.nxt';
+			 response.sendFile(path.join(__dirname+'/src/next_studio/custom_templates/'+tmpltSrc));
 		}
 	});
 };

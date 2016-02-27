@@ -50,7 +50,10 @@ nx.node('$textField',['constants',function(constants){
         //at this point we have made the template ajax call and template DOM is ready in this.dom,
     });
     this.addListeners('focus',['constants',function(constants){
-       
+       var that=this;
+       $(this.elem).on('click',function(){
+        that.raiseMgrEvent('__focus',that);
+       });
     }]);
     this.entry(['constants',function(_glEntry,constants){
          this.raiseMgrEvent('_entry',this);

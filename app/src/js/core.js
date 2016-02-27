@@ -238,6 +238,7 @@ var $nx = (function () {
 
             */     
             var _node=this;
+            _node.implObjId=implObj.id;
             var _implObj=implObj;
             var _parentNode=parentNode;
             var _promiseCallback=promiseCallback;
@@ -245,7 +246,7 @@ var $nx = (function () {
                         //check for 
                         if(this.childNode!=undefined){
                         console.log('need to deligate event to parent');
-                        var deligateEvent=_parentNode.geter(key+'/'+this.childNode);
+                        var deligateEvent=resources.nodeTypeMd[this.parentNodeType].geter(key+'/'+this.childNode);
                            if(deligateEvent!=undefined){
                             if(data!=undefined){
                                 deligateEvent.dependancies.unshift(data);
@@ -253,7 +254,7 @@ var $nx = (function () {
                                 deligateEvent._fn.apply(_parentNode,deligateEvent.dependancies);
                             }
                         }else{
-                            var event=implObj.geter(key);
+                            var event=resources.node[this.implObjId].geter(key);
                             if(event!=undefined){
                                 if(data!=undefined){
                                 event.dependancies.unshift(data);
@@ -298,7 +299,7 @@ var $nx = (function () {
                             var promise=new Promise(function(resolve, reject) {
                             if(_node.class!=undefined)
                             for (var i = _node.class.length - 1; i >= 0; i--) {
-                                _node.dom.append(_node.class[i]);
+                                $(_node.dom).addClass(_node.class[i]);
                             }
                             var scope={'config':_node,'return':resolve,'error':reject};
                              var preLoadTmpl_obj=_node.geter('_preLoadTmpl');
@@ -320,6 +321,7 @@ var $nx = (function () {
                                  //make a clone of nd type
                                  var childNodeType=_node.imports[keys[i]]=nd;
                                  childNodeType.childNode=keys[i];
+                                 childNodeType.parentNodeType=_node.id;
                                  //api.buildNodeTemplate.apply(childNodeType,[implObj,_node]);
                                  console.log('built'+_node);
                                  var promise=new Promise(function(resolve, reject) {
@@ -328,7 +330,7 @@ var $nx = (function () {
                                  .then(function(_childNode){
                                 _node.dom=$(_node.dom);
                                 var tempDom=_childNode.dom.clone();
-                                var childDomPointer=_node.dom.find('[data-item-id='+_childNode.childNode+']');
+                                var childDomPointer=_node.dom.find('[node='+_childNode.childNode+']');
                                  var childInnerDom=childDomPointer[0].innerHTML;
                                  if(childDomPointer!=undefined){
                                     $(childDomPointer).empty();
@@ -339,7 +341,8 @@ var $nx = (function () {
                                  }
                                  console.log(_node.dom);
                                  _node.importReady.push(tempDom.childNode);
-                                     if(_node.importReady.length==keys.length){
+
+                                if(_node.importReady.length==keys.length){
                                       console.log('all child nodes built');
                                        var _preLoadChildTmpl_obj=_node.geter('_preLoadChildTmpl');
                                         if(_preLoadChildTmpl_obj!=undefined){
@@ -395,13 +398,28 @@ var $nx = (function () {
                         }).then(function(){
                             console.log(that);
                              if(that._node.dom!=undefined && that._node.dom.length!=0){
-                             var template = ejs.compile(that._node.dom[0].outerHTML);
-                             that._node.elem=$(template(that._node.nodeMd));
+                             //var template = ejs.compile(that._node.dom[0].outerHTML);
+                            // that._node.elem=$(template(that._node.nodeMd));
+                             //that._node.elem=ejs.render(that._node.dom[0].outerHTML,that._node.nodeMd);
+                               that._node.elem=$(that._node.dom[0]);
                                var postLoadTmpl_obj=that._node.geter('_postLoadTmpl');
  
                                  if(postLoadTmpl_obj){
                                     postLoadTmpl_obj._fn.apply(that._node,postLoadTmpl_obj.dependancies);
                                      }
+                                     var importsListeners=Object.keys(that._node.imports);
+                                     for (var i = importsListeners.length - 1; i >= 0; i--) {
+                                         var importNode=that._node.imports[importsListeners[i]];
+                                         importNode.elem=that._node.elem.find('[node='+importsListeners[i]+']');
+                                         
+                                          var listenersArray=importNode.getListeners();
+                                            for(var j=0,length=listenersArray.length;j<length;j++){
+                                                if(listenersArray[j].startsWith('__')){
+                                                    var listener_obj=importNode.geter(listenersArray[j]);
+                                                    listener_obj._fn.apply(importNode,listener_obj.dependancies);
+                                                }
+                                            }
+                                     };
                                     //add listeners now
                                     //binding the listeners of parent to the dom after postload
                                     var listenersArray=that._node.getListeners();
@@ -596,7 +614,7 @@ var $nx = (function () {
                        this._fn_parser(arrayArg,'__'+key); 
                    };
                    _ndTypeClass.prototype.implChildListeners=function(node,key,arrayArg){
-                       this._fn_parser(arrayArg,'_'+key+'/'+node); 
+                       this._fn_parser(arrayArg,'__'+key+'/'+node); 
                    };
                    _ndTypeClass.prototype.build=function(arrayArg){
                        this._fn_parser(arrayArg,'_$build'); 

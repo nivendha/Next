@@ -16,8 +16,7 @@ var gulp = require('gulp'),
 var resPath='app/src/';
 var paths = {
     scripts: 'js/**/*.js',
-    styles: 'css/**/*.css',
-    images: 'img/**/*.*',
+    css:'css/**/*.css',
     index: 'index.html',
     templates: 'templates/**/*.nxt',
     plugins:'plugins/**/*.*',
@@ -26,15 +25,21 @@ var resDestPath='app/public/';
 var dest={
     templates: 'templates',
 }
+
+var launchAppName='proper_cloth';
+
+
 var next_ImplPath={
-    mainJs: 'app/src/next_studio/next_studio_main.js',
-    readyJs: 'app/src/next_studio/next_studio_ready.js',
-    constants :'app/src/next_studio/constants/*.js',
-    modules: 'app/src/next_studio/modules/*.js',
-    nodes:'app/src/next_studio/nodes/*.js',
-    handlers:'app/src/next_studio/handlers/*.js',
-    custom_templates: 'app/src/next_studio/custom_templates/*.nxt',
-    routes:'app/src/next_studio/routes/*.js'
+    mainJs: 'app/src/'+launchAppName+'/main.js',
+    readyJs: 'app/src/'+launchAppName+'/ready.js',
+    images: 'app/src/'+launchAppName+'/img/**/*.*',
+    styles: 'app/src/'+launchAppName+'/css/**/*.css',
+    constants :'app/src/'+launchAppName+'/constants/*.js',
+    modules: 'app/src/'+launchAppName+'/modules/*.js',
+    nodes:'app/src/'+launchAppName+'/nodes/*.js',
+    handlers:'app/src/'+launchAppName+'/handlers/*.js',
+    custom_templates: 'app/src/'+launchAppName+'/custom_templates/*.nxt',
+    routes:'app/src/'+launchAppName+'/routes/*.js'
 }
 /*
 *precompile templates EJS
@@ -82,7 +87,7 @@ gulp.task('copy-bower_fonts', function() {
 gulp.task('build-custom', ['custom-images', 'custom-js', 'custom-less', 'ejs-templates']);
 
 gulp.task('custom-images', function() {
-    return gulp.src(resPath+paths.images)
+    return gulp.src(next_ImplPath.images)
         .pipe(gulp.dest(resDestPath+'img'));
 });
 
@@ -94,14 +99,15 @@ gulp.task('custom-js', function() {
 });
 
 gulp.task('custom-less', function() {
-    return gulp.src(resPath+paths.styles)
+    return gulp.src(next_ImplPath.styles)
         .pipe(concat('style.min.css'))
         .pipe(gulp.dest(resDestPath+'css'));
 });
 
-gulp.task('custom-images', function() {
-    return gulp.src(resPath+paths.images)
-        .pipe(gulp.dest(resDestPath+'img'));
+gulp.task('main-css', function() {
+     return gulp.src(resPath+paths.css)
+        .pipe(concat('main.min.css'))
+        .pipe(gulp.dest(resDestPath+'css'));
 });
 
 /**
@@ -145,6 +151,6 @@ gulp.task('watch', function() {
 /**
  * Gulp tasks
  */
-gulp.task('build', ['usemin','build-custom','build-impl']);
+gulp.task('build', ['usemin','build-custom','build-impl','main-css']);
 gulp.task('build-watch', ['build', 'watch']);
 gulp.task('default', ['build']);

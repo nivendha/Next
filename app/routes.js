@@ -3,9 +3,11 @@ var httprequest = require('request');
 var path    = require("path");
 //var ejs = require('ejs');
 
+var launchApp='proper_cloth';
+
 /*temporary data*/
 var node0_md={
-	'data':''
+	'tabs':[]
 };
 
 
@@ -39,7 +41,7 @@ module.exports = function(app) {
 			response.render(request.query.tmplId+'.nxt');
 		} else {
 			var tmpltSrc=request.query.tmplId+'.nxt';
-			 response.sendFile(path.join(__dirname+'/src/next_studio/custom_templates/'+tmpltSrc));
+			 response.sendFile(path.join(__dirname+'/src/'+launchApp+'/custom_templates/'+tmpltSrc));
 		}
 	});
 };

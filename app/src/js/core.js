@@ -273,7 +273,10 @@ var $nx = (function () {
                     }
                     ent_obj.dependancies.unshift(_obj);
             }
-            ent_obj._fn.apply(_node,ent_obj.dependancies);
+            if(ent_obj!=undefined)
+            {
+                ent_obj._fn.apply(_node,ent_obj.dependancies);
+            }
 
             var extraParamAjax_obj=_node.geter('_extraParamAjax');
                     var promise=new Promise(function(resolve, reject) {
@@ -398,10 +401,8 @@ var $nx = (function () {
                         }).then(function(){
                             console.log(that);
                              if(that._node.dom!=undefined && that._node.dom.length!=0){
-                             //var template = ejs.compile(that._node.dom[0].outerHTML);
-                            // that._node.elem=$(template(that._node.nodeMd));
-                             //that._node.elem=ejs.render(that._node.dom[0].outerHTML,that._node.nodeMd);
-                               that._node.elem=$(that._node.dom[0]);
+                            var template = Handlebars.compile(that._node.dom[0].outerHTML);
+                            that._node.elem=$(template(that._node.nodeMd));
                                var postLoadTmpl_obj=that._node.geter('_postLoadTmpl');
  
                                  if(postLoadTmpl_obj){

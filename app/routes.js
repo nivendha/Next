@@ -7,7 +7,23 @@ var launchApp='proper_cloth';
 
 /*temporary data*/
 var node0_md={
-	'tabs':[]
+	'title':'Proper cloths',
+	'tabs':[
+		{name:'home'},
+		{name:'men'},
+		{name:'women'},
+		{name:'children'},
+		{
+		name:'spl',
+		child:[
+			{childName:'child_1'},{childName:'child_2'},{childName:'child_3'}
+			]
+		}
+	],
+	'navBar':{
+		'aboutHdr':'About us',
+		'aboutMsg':'Get to know us from this description of footer'
+	}
 };
 
 

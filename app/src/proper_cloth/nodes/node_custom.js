@@ -1,11 +1,5 @@
 nx.node('$tab',['constants',function(constants){
     this.template='sliderTab';
-    this.extraParamAjax(function(){
-       this.return();
-    });
-    this.preLoadTmpl(function(){
-        this.return(this.config.raiseMgrEvent('_preLoadTmpl',this));
-    });
     this.postLoadTmpl(function(){
     });
     this.addListeners('tabClick',['constants',function(constants){
@@ -13,12 +7,6 @@ nx.node('$tab',['constants',function(constants){
     }]);
     this.addListeners('tabMove',['constants',function(constants){
         
-    }]);
-    this.entry(['constants',function(_glEntry,constants){
-         this.raiseMgrEvent('_entry',this);
-    }]);
-    this.exit(['constants',function(_glExit,constants){
-        this.raiseMgrEvent('_exit',this);
     }]);
 }]);
 

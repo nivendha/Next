@@ -5,6 +5,7 @@
   "homepage": "",
   "dependencies": {
     "ejs": "~1.0.0",
+    "handlebars": "~4.0.5",
     "jsface": "~2.4.9",
     "materialize": "~0.97.0"
   },

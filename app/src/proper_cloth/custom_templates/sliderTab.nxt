@@ -1,37 +1,17 @@
  <div class='sticky_tab'>
   <div class='sticky_tab_header'>
-    <h1>Proper Cloths</h1>
+    <h1>{{title}}</h1>
   </div>
   <div class="tab-wrap">
-  
-    <input type="radio" name="tabs" id="tab1" checked>
-    <div class="tab-label-content" id="tab1-content">
-      <label for="tab1">Home</label>
-      <div class="tab-content">TAB 1 -Home</div>
+  {{#if tabs}}
+  {{#each tabs}}
+    <input type="radio" name="tabs" id="{{name}}" >
+    <div class="tab-label-content">
+      <label for="{{name}}">{{name}}</label>
+      <div class="tab-content">TAB {{name}}</div>
     </div>
-     <input type="radio" name="tabs" id="tab11">
-    <div class="tab-label-content" id="tab11-content">
-      <label for="tab11">Women</label>
-      <div class="tab-content">TAB 2 -women</div>
-    </div>
-    <input type="radio" name="tabs" id="tab2">
-    <div class="tab-label-content" id="tab2-content">
-      <label for="tab2">Men</label>
-      <div class="tab-content">TAB 3 -men.</div>
-    </div>
-    
-    <input type="radio" name="tabs" id="tab3">
-    <div class="tab-label-content" id="tab3-content">
-      <label for="tab3">Children</label>
-      <div class="tab-content">TAB 3 -Children</div>
-    </div>
-  
-     <input type="radio" name="tabs" id="tab4">
-     <div class="tab-label-content" id="tab4-content">
-      <label for="tab4">Special</label>
-      <div class="tab-content">TAB 4 - Special</div>
-    </div>
-    
+  {{/each}}
     <div class="slide"></div>
+  {{/if}}
   </div>
 </div>

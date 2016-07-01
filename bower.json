@@ -5,8 +5,10 @@
   "homepage": "",
   "dependencies": {
     "ejs": "~1.0.0",
+    "font-awesome": "~4.6.1",
     "handlebars": "~4.0.5",
     "jsface": "~2.4.9",
+    "linea-io": "~1.0.0",
     "materialize": "~0.97.0"
   },
   "directory": "app/src/components",

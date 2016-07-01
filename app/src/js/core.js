@@ -194,13 +194,16 @@ var $nx = (function () {
         'start':function(){
             //1)read maper json
            
-            this.readMap();
+           var map= this.readMap();
+            this.buildForMap(map);  
            
         },
         'readMap':function(){
-             var _map=resources._mapperJson=mapperJson;
-            
-                if(_map.id!=undefined){
+             var map=resources._mapperJson || (resources._mapperJson=mapperJson);
+             return map;
+        },
+        'buildForMap':function(_map){
+              if(_map.id!=undefined){
                     var ndMgr=resources.node[_map.id];
                      //2)build the node
                 //make an ajax call to intiate the node to build
@@ -210,7 +213,7 @@ var $nx = (function () {
         },
         'getParentMapNode':function(id,json,parent){
             if(id!=undefined && typeof id=='string'){
-                if(json.id==id){return parent || 'root';}
+                if(json.id==id){return parent || json;}
                 else{
                     for (var i = json.child.length - 1; i >= 0; i--) {
                         return api.getParentMapNode(id,json.child[i],json);
@@ -225,6 +228,30 @@ var $nx = (function () {
                     for (var i = json.child.length - 1; i >= 0; i--) {
                         return api.getMapNode(id,json.child[i]);
                     }
+                }
+            }
+        },
+        'getNextNodeToRender':function(node){
+            if(node.id!=undefined && typeof node.id=='string'){
+              /*  if(json.id==id){return json}
+                else{
+                    for (var i = json.child.length - 1; i >= 0; i--) {
+                        return api.getMapNode(id,json.child[i]);
+                    }
+                }*/
+                //check to return if any siblings unrendered
+                var parentNode=this.getParentMapNode(node.id,resources._mapperJson)
+                for (var i = 0; i < parentNode.child.length; i++) {
+                    var nd=parentNode.child[i]
+                    if(nd.rendered!=true || nd.rendered==undefined){
+                        return nd;
+                    }
+                }
+                //when all siblings are rendered go for child
+                if(node.child!=undefined && node.child.length>0){
+                    return node.child[0];
+                }else{
+                    console.log('all nodes rendered i gues :)');
                 }
             }
         },
@@ -246,7 +273,8 @@ var $nx = (function () {
                         //check for 
                         if(this.childNode!=undefined){
                         console.log('need to deligate event to parent');
-                        var deligateEvent=resources.nodeTypeMd[this.parentNodeType].geter(key+'/'+this.childNode);
+                       // var deligateEvent=resources.nodeTypeMd[this.parentNodeType].geter(key+'/'+this.childNode);
+                          var deligateEvent=this.parentNode.geter(key+'/'+this.childNode);
                            if(deligateEvent!=undefined){
                             if(data!=undefined){
                                 deligateEvent.dependancies.unshift(data);
@@ -254,7 +282,8 @@ var $nx = (function () {
                                 deligateEvent._fn.apply(_parentNode,deligateEvent.dependancies);
                             }
                         }else{
-                            var event=resources.node[this.implObjId].geter(key);
+                           var event=resources.node[this.implObjId].geter(key);
+                           //var event=this.geter(key);
                             if(event!=undefined){
                                 if(data!=undefined){
                                 event.dependancies.unshift(data);
@@ -264,6 +293,31 @@ var $nx = (function () {
                         }
                         
                     }
+              /*_node.super=function(){
+                if(this.imports!=undefined){
+                 var importsListeners=Object.keys(this.imports);
+                                     for (var i = importsListeners.length - 1; i >= 0; i--) {
+                                         var importNode=this.imports[importsListeners[i]];
+                                         importNode.elem=this.elem.find('[node='+importsListeners[i]+']');
+                                         
+                                          var listenersArray=importNode.getListeners();
+                                          var postLoadTmpl_obj=importNode.geter('_postLoadTmpl');
+                                          if(postLoadTmpl_obj){
+                                               postLoadTmpl_obj._fn.apply(importNode,postLoadTmpl_obj.dependancies);
+                                          }
+                                     };
+                
+            }*/
+             _node.publishEvent=function(key,data){
+                console.log(this);
+               var eventObj=this.geter('__'+key);
+                if(eventObj){
+                    if(data!=undefined)
+                    eventObj.dependancies.push(data);
+                    radio('__'+key+'/'+this.childNode+'/'+this.implObjId).broadcast(eventObj.dependancies);
+               //     eventObj._fn.apply(this,eventObj.dependancies);
+                }
+            }
             var _obj;
             var ent_obj=_node.geter('_entry');
             if(this.childNode==undefined){
@@ -282,7 +336,7 @@ var $nx = (function () {
                     var promise=new Promise(function(resolve, reject) {
                         if(extraParamAjax_obj!=undefined){
                         var scope={'config':_node,'return':resolve,'error':reject};
-                        extraParamAjax_obj._fn.apply(scope,extraParamAjax_obj.dependancies);
+                        extraParamAjax_obj._fn.apply(scope,[api.loadModule('nxAjax')]);
                         }else{resolve('');}
             }).then(function(extraParams){
               _node.extraParams=extraParams;
@@ -324,7 +378,8 @@ var $nx = (function () {
                                  //make a clone of nd type
                                  var childNodeType=_node.imports[keys[i]]=nd;
                                  childNodeType.childNode=keys[i];
-                                 childNodeType.parentNodeType=_node.id;
+                                 childNodeType.parentNodeId=_node.id;
+                                 childNodeType.parentNode=_node;
                                  //api.buildNodeTemplate.apply(childNodeType,[implObj,_node]);
                                  console.log('built'+_node);
                                  var promise=new Promise(function(resolve, reject) {
@@ -396,18 +451,55 @@ var $nx = (function () {
                             if(that._node.dom!=undefined && that._node.dom.length!=0){
                             var scope={'config':that._node,'return':resolve,'error':reject};
                              var nodeDataReady_obj=that._node.geter('_nodeDataReady');
+                             if(nodeDataReady_obj){
                              nodeDataReady_obj._fn.apply(scope,nodeDataReady_obj.dependancies);
+                            }else{resolve(that);}
                             }else{resolve(that);}
                         }).then(function(){
                             console.log(that);
                              if(that._node.dom!=undefined && that._node.dom.length!=0){
                             var template = Handlebars.compile(that._node.dom[0].outerHTML);
                             that._node.elem=$(template(that._node.nodeMd));
+                        
+                       
+
+                            if(that._node.imports!=undefined){
+                                     var importNodes=Object.keys(that._node.imports);
+                                     for (var i = importNodes.length - 1; i >= 0; i--) {
+                                         var importNode=that._node.imports[importNodes[i]];
+                                         var childListenersArray=importNode.getListeners();
+                                    
+                                         for (var j = 0; j < childListenersArray.length; j++) {
+                                           if(childListenersArray[j].startsWith('__')){
+                                            var childListener_obj=importNode.geter(childListenersArray[j]);
+                                            radio(childListenersArray[j]+'/'+importNode.childNode+'/'+that._node.implObjId).subscribe([childListener_obj._fn,importNode]);
+                                             }
+                                         };
+
+                                         importNode.elem=that._node.elem.find('[node='+importNodes[i]+']');
+                                        var childPostLoadTmpl_obj=importNode.geter('_postLoadTmpl');
+                                            if(childPostLoadTmpl_obj){
+                                                 childPostLoadTmpl_obj._fn.apply(importNode,childPostLoadTmpl_obj.dependancies);
+                                            }
+
+                                        }
+                                     };
+                                
+                                 //create radio subscribe for all the node events
+                                 //binding the listeners of parent to the dom after postload
+                                    var listenersArray=that._node.getListeners();
+                                    for(var i=0,length=listenersArray.length;i<length;i++){
+                                    if(listenersArray[i].startsWith('__') && listenersArray[i].indexOf('/')==-1){
+                                    var listener_obj=that._node.geter(listenersArray[i]);
+                                    radio(listenersArray[i]+'/'+that._node.implObjId).subscribe([listener_obj._fn, that.node]);
+                                       //     listener_obj._fn.apply(that._node,listener_obj.dependancies);
+                                        }
+                                    }
                                var postLoadTmpl_obj=that._node.geter('_postLoadTmpl');
- 
                                  if(postLoadTmpl_obj){
                                     postLoadTmpl_obj._fn.apply(that._node,postLoadTmpl_obj.dependancies);
                                      }
+                                     /*if(that._node.imports!=undefined){
                                      var importsListeners=Object.keys(that._node.imports);
                                      for (var i = importsListeners.length - 1; i >= 0; i--) {
                                          var importNode=that._node.imports[importsListeners[i]];
@@ -421,22 +513,16 @@ var $nx = (function () {
                                                 }
                                             }
                                      };
+                                 }
                                     //add listeners now
-                                    //binding the listeners of parent to the dom after postload
-                                    var listenersArray=that._node.getListeners();
-                                    for(var i=0,length=listenersArray.length;i<length;i++){
-                                        if(listenersArray[i].startsWith('__')){
-                                            var listener_obj=that._node.geter(listenersArray[i]);
-                                            listener_obj._fn.apply(that._node,listener_obj.dependancies);
-                                        }
-                                    }
+                                   
                                     //binding child listeners if any
                                      for(var i=0,length=listenersArray.length;i<length;i++){
                                         if(listenersArray[i].indexOf('/') > -1){
                                             var listener_obj=that._node.geter(listenersArray[i]);
                                             listener_obj._fn.apply(that._node,listener_obj.dependancies);
                                         }
-                                    }
+                                    }*/
                                     //************   need to write exit and global exit *******
                                    api.nodeRenderer(that._nodeMgr.id);
                              }else{
@@ -456,11 +542,23 @@ var $nx = (function () {
                     var ndData=ndMgrObj.geter('config');
 
                     var parentNdMap=api.getParentMapNode(nodeMgrId,resources._mapperJson);
-                    if(parentNdMap==undefined || parentNdMap=='root'){
+                    if(parentNdMap==undefined || ndData.innerWraper==undefined || $(ndData.innerWraper).length==0){
                         $('#main').append(ndData.elem);
                     }else{
                     var parentNdMgrObj=resources.node[parentNdMap.id];
                     var parentNdData=parentNdMgrObj.geter('config');
+                     if(parentNdData!=undefined && parentNdData.innerWraper!=undefined && $(parentNdData.innerWraper).length>=0){
+                        $(parentNdData.innerWraper).append(ndData.elem);
+                     }else{console.log('error here plz check');}
+                    }
+                    ndMap.rendered=true;
+                    var nxtnodeMap=this.getNextNodeToRender(ndMap);
+                    if(nxtnodeMap!=undefined){
+                   /* var nxtnodeMgrObj=resources.node[nxtnode.id];
+                    var nxtnodeData=parentNdMgrObj.geter('config');
+                    this.buildNodeTemplate.apply(nxtnodeData,[nxtnodeMgrObj]);
+                   */
+                   this.buildForMap(nxtnodeMap)
                     }
 
         },
@@ -608,11 +706,27 @@ var $nx = (function () {
                             return _cell_api._getListeners.apply(this,arguments);
                         };
                     });
+                 /*   _ndTypeClass.prototype._event_parser=function(arrayArg,_fn){
+                        if(typeof arrayArg=='function'  || typeof arrayArg=='Object'){
+                                        arrayArg=[arrayArg];
+                                    }
+                                     var fn_index = arrayArg.length-1;
+                                     var dependancies = arrayArg.slice(0, -1);
+                                      if (typeof arrayArg[fn_index] === "function") {
+                                        dependancies=api.loadDependancies(dependancies);
+                                        this.seter().apply(this,[_fn,
+                                            {
+                                            'dependancies':dependancies,
+                                            '_fn':arrayArg[fn_index]
+                                            }]);
+                                   //     radio(_fn).subscribe([arrayArg[fn_index],this]);
+                                      }
+                     };*/
                     _ndTypeClass.prototype.extraParamAjax=function(_fn_callback){
                      this._fn_parser(_fn_callback,'_extraParamAjax');
                     };
                    _ndTypeClass.prototype.addListeners=function(key,arrayArg){
-                       this._fn_parser(arrayArg,'__'+key); 
+                      this._fn_parser(arrayArg,'__'+key);
                    };
                    _ndTypeClass.prototype.implChildListeners=function(node,key,arrayArg){
                        this._fn_parser(arrayArg,'__'+key+'/'+node); 
@@ -623,8 +737,17 @@ var $nx = (function () {
                     _ndTypeClass.prototype.postFetchChildMd=function(arrayArg){
                        this._fn_parser(arrayArg,'_postFetchChildMd'); 
                    };
-                    _ndTypeClass.prototype.exit=function(arrayArg){
-                       this._fn_parser(arrayArg,'_exit');
+                    _ndTypeClass.prototype.extendEntry=function(key,arrayArg){
+                       this._fn_parser(arrayArg,'_entry'+'/'+key); 
+                    };
+                    _ndTypeClass.prototype.extendExit=function(key,arrayArg){
+                       this._fn_parser(arrayArg,'_exit'+'/'+key); 
+                    };
+                    _ndTypeClass.prototype.extendPreloadTmpl=function(key,arrayArg){
+                       this._fn_parser(arrayArg,'_preLoadTmpl'+'/'+key); 
+                    };
+                    _ndTypeClass.prototype.extendPostloadTmpl=function(key,arrayArg){
+                       this._fn_parser(arrayArg,'_postLoadTmpl'+'/'+key); 
                     };
      _ndTypeClass=merge(_ndTypeClass,_CellClass);
     var _ndMgrClass= (function(config){

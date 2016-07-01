@@ -17,7 +17,7 @@ var resPath='app/src/';
 var paths = {
     scripts: 'js/**/*.js',
     css:'css/**/*.css',
-    index: 'index.html',
+    index: '*.html',
     templates: 'templates/**/*.nxt',
     plugins:'plugins/**/*.*',
 };
@@ -26,8 +26,12 @@ var dest={
     templates: 'templates',
 }
 
-var launchAppName='proper_cloth';
+var launchAppName='admin_lite';
 
+var fonts={
+    font_awesome:resPath+'components/font-awesome/fonts/**/*.*',
+    linea_io:resPath+'components/linea-io/fonts/**/*.*'
+}
 
 var next_ImplPath={
     mainJs: 'app/src/'+launchAppName+'/main.js',
@@ -38,7 +42,7 @@ var next_ImplPath={
     modules: 'app/src/'+launchAppName+'/modules/*.js',
     nodes:'app/src/'+launchAppName+'/nodes/*.js',
     handlers:'app/src/'+launchAppName+'/handlers/*.js',
-    custom_templates: 'app/src/'+launchAppName+'/custom_templates/*.nxt',
+    templateCss:'app/src/'+launchAppName+'/custom_css/*.css',
     routes:'app/src/'+launchAppName+'/routes/*.js'
 }
 /*
@@ -80,15 +84,28 @@ gulp.task('copy-bower_fonts', function() {
         }))
         .pipe(gulp.dest('dist/lib'));
 });*/
-
+gulp.task('custom-fonts', ['font-awesome', 'linea-io']);
+gulp.task('font-awesome', function() {
+    return gulp.src(fonts.font_awesome)
+        .pipe(gulp.dest(resDestPath+'fonts'));
+});
+gulp.task('linea-io', function() {
+    return gulp.src(fonts.linea_io)
+        .pipe(gulp.dest(resDestPath+'fonts'));
+});
 /**
  * Handle custom files
  */
-gulp.task('build-custom', ['custom-images', 'custom-js', 'custom-less', 'ejs-templates']);
+gulp.task('build-custom', ['custom-images', 'custom-js', 'custom-less', 'custom-fonts','ejs-templates','template-css']);
 
 gulp.task('custom-images', function() {
     return gulp.src(next_ImplPath.images)
         .pipe(gulp.dest(resDestPath+'img'));
+});
+
+gulp.task('template-css', function() {
+    return gulp.src(next_ImplPath.templateCss)
+        .pipe(gulp.dest(resDestPath+'custom_css'));
 });
 
 gulp.task('custom-js', function() {
@@ -100,13 +117,13 @@ gulp.task('custom-js', function() {
 
 gulp.task('custom-less', function() {
     return gulp.src(next_ImplPath.styles)
-        .pipe(concat('style.min.css'))
+        .pipe(concat('app_style.min.css'))
         .pipe(gulp.dest(resDestPath+'css'));
 });
 
 gulp.task('main-css', function() {
      return gulp.src(resPath+paths.css)
-        .pipe(concat('main.min.css'))
+        .pipe(concat('nxt_base.min.css'))
         .pipe(gulp.dest(resDestPath+'css'));
 });
 
@@ -133,7 +150,7 @@ gulp.task('watch', function() {
     gulp.watch([resPath+paths.images], ['custom-images']);
     gulp.watch([resPath+paths.styles], ['custom-less']);
     gulp.watch([resPath+paths.scripts], ['custom-js']);
-    gulp.watch([resPath+paths.templates], ['custom-templates']);
+    gulp.watch([resPath+paths.templates], ['ejs-templates']);
     gulp.watch([resPath+paths.index], ['usemin']);
 });
 

@@ -4,6 +4,7 @@
   "description": "",
   "homepage": "",
   "dependencies": {
+    "bootstrap": "~3.3.6",
     "ejs": "~1.0.0",
     "font-awesome": "~4.6.1",
     "handlebars": "~4.0.5",
